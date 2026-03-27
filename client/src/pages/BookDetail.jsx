@@ -125,6 +125,20 @@ export default function BookDetail() {
               <p className="text-muted-foreground leading-relaxed text-base">{book.description}</p>
             </div>
 
+            {/* Read PDF Action */}
+            {book.pdfUrl && (
+              <div className="mb-8">
+                <a
+                  href={book.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-500 hover:to-primary-700 text-white shadow-lg hover:shadow-primary-500/25 transition-all w-full sm:w-auto transform hover:-translate-y-1"
+                >
+                  <FiBook className="w-5 h-5" /> Read Full Book (PDF)
+                </a>
+              </div>
+            )}
+
             {/* AI Actions */}
             <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
               <button

@@ -22,36 +22,80 @@ api.interceptors.request.use((config) => {
 const mockUser = { id: 1, name: 'Demo User', email: 'user@example.com' };
 
 export const apiService = {
-  // Books (Mocks for now as backend has no endpoints)
+  // Books API Integration
   getBooks: async () => {
-    // Return mock data for frontend demo
-    const { books } = await import('../utils/constants.js');
-    return new Promise(resolve => setTimeout(() => resolve({ data: books }), 500));
+    try {
+      const response = await api.get('/books/');
+      
+      // Map DRF response to match what the frontend expects
+      const formattedBooks = response.data.map((book) => ({
+        id: book.id,
+        title: book.title,
+        author: book.author,
+        category: book.category ? book.category.name : 'General',
+        description: book.description,
+        coverImage: book.cover_image_url || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
+        pdfUrl: book.pdf_file, // Link to the PDF added locally via admin
+        rating: 4.5, // Future: add rating to backend
+      }));
+      
+      return { data: formattedBooks };
+    } catch (err) {
+      console.warn("Backend unavailable or empty. Falling back to mock data.", err);
+      const { books } = await import('../utils/constants.js');
+      return { data: books };
+    }
   },
   getBook: async (id) => {
-    const { books } = await import('../utils/constants.js');
-    const book = books.find(b => b.id.toString() === id.toString());
-    return new Promise((resolve, reject) => 
-      setTimeout(() => book ? resolve({ data: book }) : reject(new Error('Book not found')), 300)
-    );
+    try {
+      const response = await apiService.getBooks();
+      const book = response.data.find(b => b.id.toString() === id.toString());
+      if (book) return { data: book };
+      throw new Error('Book not found');
+    } catch (err) {
+      throw err;
+    }
   },
   searchBooks: async (query) => {
-    const { books } = await import('../utils/constants.js');
-    const q = query.toLowerCase();
-    const results = books.filter(b => 
-      b.title.toLowerCase().includes(q) || 
-      b.author.toLowerCase().includes(q) ||
-      b.category.toLowerCase().includes(q)
-    );
-    return new Promise(resolve => setTimeout(() => resolve({ data: results }), 500));
+    try {
+      const response = await apiService.getBooks();
+      const books = response.data;
+      const q = query.toLowerCase();
+      const results = books.filter(b => 
+        (b.title && b.title.toLowerCase().includes(q)) || 
+        (b.author && b.author.toLowerCase().includes(q)) ||
+        (b.category && b.category.toLowerCase().includes(q))
+      );
+      return { data: results };
+    } catch (err) {
+      console.warn("Search error:", err);
+      return { data: [] };
+    }
   },
 
-  // Auth (Mocks for now)
+  // Auth Integration
   login: async (credentials) => {
-    return new Promise(resolve => setTimeout(() => resolve({ data: { user: mockUser, token: 'demo_token_123' } }), 800));
+    try {
+      const response = await api.post('/login/', credentials);
+      // The backend returns { access, refresh, user_id, username }
+      const { access, user_id, username } = response.data;
+      
+      // Map it to what the frontend's Zustand store expects
+      return { 
+        data: { 
+          user: { id: user_id, name: username, email: credentials.username + '@user.com' }, 
+          token: access 
+        } 
+      };
+    } catch (error) {
+       console.error("Login failed:", error.response?.data || error.message);
+       throw error;
+    }
   },
   signup: async (data) => {
-    return new Promise(resolve => setTimeout(() => resolve({ data: { user: { id: 2, ...data }, token: 'demo_token_456' } }), 800));
+    // For now, map signup to login since backend doesn't have a dedicated /signup/ yet.
+    // Future: implement registration backend.
+    return apiService.login({ username: data.name, password: data.password });
   },
 
   // Bookmarks (Handled locally in Zustand, these are mock API wrappers)
@@ -61,9 +105,14 @@ export const apiService = {
 
   // AI
   askAI: async (question) => {
-    // Uses the actual live endpoint `GET /api/ask-ai/?question=`
-    return api.get('/ask-ai/', { params: { question } });
-  },
+  try {
+    const res = await api.get('/ask-ai/', { params: { question } });
+    return res;
+  } catch (error) {
+    console.error("AI API ERROR:", error.response || error);
+    throw error;
+  }
+},
   
   getAISummary: async (bookTitle, author) => {
     // Wrapper around askAI for a specific summary prompt
