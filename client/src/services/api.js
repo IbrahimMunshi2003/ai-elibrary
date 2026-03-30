@@ -47,14 +47,10 @@ export const apiService = {
     }
   },
   getBook: async (id) => {
-    try {
-      const response = await apiService.getBooks();
-      const book = response.data.find(b => b.id.toString() === id.toString());
-      if (book) return { data: book };
-      throw new Error('Book not found');
-    } catch (err) {
-      throw err;
-    }
+    const response = await apiService.getBooks();
+    const book = response.data.find(b => b.id.toString() === id.toString());
+    if (book) return { data: book };
+    throw new Error('Book not found');
   },
   searchBooks: async (query) => {
     try {
@@ -88,8 +84,9 @@ export const apiService = {
         } 
       };
     } catch (error) {
-       console.error("Login failed:", error.response?.data || error.message);
-       throw error;
+      const errorMsg = error.response?.data?.error || error.response?.data?.detail || error.message || "Login failed";
+      console.error("Login Error:", errorMsg);
+      throw new Error(errorMsg);
     }
   },
   signup: async (data) => {
@@ -106,7 +103,7 @@ export const apiService = {
   // AI
   askAI: async (question) => {
   try {
-    const res = await api.get('/ask-ai/', { params: { question } });
+    const res = await api.post('/ask-ai/', { question });
     return res;
   } catch (error) {
     console.error("AI API ERROR:", error.response || error);
@@ -117,6 +114,6 @@ export const apiService = {
   getAISummary: async (bookTitle, author) => {
     // Wrapper around askAI for a specific summary prompt
     const question = `Give me a short summary of the book "${bookTitle}" by ${author}. Keep it under structured into 3 bullet points.`;
-    return api.get('/ask-ai/', { params: { question } });
+    return api.post('/ask-ai/', { question });
   }
 };
