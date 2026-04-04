@@ -247,6 +247,7 @@
 # # CORS
 # # ================================
 
+# Moved to top
 # CORS_ALLOW_ALL_ORIGINS = True
 
 # # ================================
@@ -276,19 +277,7 @@
 
 # WSGI_APPLICATION = 'config.wsgi.application'
 
-# # ================================
-# # DATABASE (MongoDB Atlas)
-# # ================================
-
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "djongo",
-#         "NAME": "AI-ELIBRARY",
-#         "CLIENT": {
-#             "host": os.getenv("MONGODB_URI")
-#         }
-#     }
-# }
+# Removed duplicate DATABASES config
 
 # # ================================
 # # PASSWORD VALIDATION
@@ -346,16 +335,16 @@ SECRET_KEY = os.getenv(
     "django-insecure-dev-key"
 )
 
-DEBUG = os.getenv("DEBUG", "True") == "True"
-
+DEBUG = True
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    ".onrender.com"
+    ".onrender.com",
+    "*"
 ]
 
-# Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") 
+# Groq API
+GROQ_API_KEY = os.getenv("GROQ_API_KEY") 
 
 # ================================
 # INSTALLED APPS
@@ -389,6 +378,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -402,10 +392,19 @@ MIDDLEWARE = [
 ]
 
 # ================================
-# CORS
+# CORS & CSRF
 # ================================
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://*.onrender.com",
+]
 
 # ================================
 # URLS
@@ -475,7 +474,9 @@ USE_TZ = True
 # STATIC FILES
 # ================================
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # ================================

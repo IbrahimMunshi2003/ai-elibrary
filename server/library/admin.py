@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Book, Bookmark, Collection, ReadingHistory
+from .models import Category, Book, Bookmark, Collection, ReadingHistory, Comment
 
 # Register Categories
 @admin.register(Category)
@@ -34,3 +34,10 @@ class ReadingHistoryAdmin(admin.ModelAdmin):
     list_display = ('user', 'book', 'last_read_at')
     list_filter = ('last_read_at',)
     search_fields = ('user__username', 'book__title')
+
+# Register Comments & Ratings
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('book', 'user_name', 'rating', 'created_at')
+    list_filter = ('rating', 'created_at')
+    search_fields = ('book__title', 'user_name', 'comment_text')

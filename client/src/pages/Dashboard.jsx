@@ -1,112 +1,248 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { FiClock, FiBookmark, FiThumbsUp } from 'react-icons/fi';
-import { useAuthStore } from '../store/authStore';
-import { useBookmarkStore } from '../store/bookmarkStore';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FiBook, FiMessageSquare, FiStar, FiBookmark, 
+  FiActivity, FiTrendingUp, FiArrowUpRight, FiClock 
+} from 'react-icons/fi';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+  LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
+} from 'recharts';
 import { apiService } from '../services/api';
 import BookCard from '../components/BookCard';
-import RecommendationCarousel from '../components/RecommendationCarousel';
 import Loader from '../components/Loader';
+import toast from 'react-hot-toast';
+
+const COLORS = ['#4f46e5', '#8b5cf6', '#ec4899', '#f43f5e', '#f59e0b', '#10b981'];
+
+const StatsCard = ({ title, value, icon: Icon, color, trend }) => (
+  <motion.div 
+    whileHover={{ y: -5 }}
+    className="bg-card p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-all"
+  >
+    <div className="flex justify-between items-start mb-4">
+      <div className={`p-3 rounded-xl bg-${color}-500/10 text-${color}-600`}>
+        <Icon className="w-6 h-6" />
+      </div>
+      {trend && (
+        <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded-full">
+          <FiTrendingUp className="mr-1" /> {trend}
+        </span>
+      )}
+    </div>
+    <div>
+      <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
+      <h3 className="text-2xl font-bold text-foreground">{value}</h3>
+    </div>
+  </motion.div>
+);
+
+const SectionHeader = ({ title, icon: Icon, subtitle }) => (
+  <div className="mb-6">
+    <div className="flex items-center gap-2 mb-1">
+      {Icon && <Icon className="text-primary-500 w-5 h-5" />}
+      <h2 className="text-xl font-bold text-foreground">{title}</h2>
+    </div>
+    {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+  </div>
+);
 
 export default function Dashboard() {
-  const { user } = useAuthStore();
-  const { bookmarks } = useBookmarkStore();
-  const [recommendations, setRecommendations] = useState([]);
+  const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch generic recommendations for dashboard
-    const fetchRecs = async () => {
+    const fetchDashboard = async () => {
       try {
-        const res = await apiService.getBooks();
-        setRecommendations(res.data);
+        const res = await apiService.getDashboardStats();
+        setData(res);
       } catch (err) {
-        console.error('Failed to load Dashboard recommendations');
+        toast.error("Failed to load analytics dashboard");
       } finally {
         setIsLoading(false);
       }
     };
-    fetchRecs();
+    fetchDashboard();
   }, []);
 
   if (isLoading) return <Loader />;
+  if (!data) return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <FiActivity className="w-12 h-12 text-muted-foreground mb-4" />
+      <h2 className="text-xl font-semibold">No analytics data available yet</h2>
+      <p className="text-muted-foreground max-w-xs">Start interacting with the library to see your activity dashboard grow.</p>
+    </div>
+  );
+
+  const { total_books, total_comments, average_rating, pdf_opened, ai_queries, bookmarks, category_distribution, activity_trend, top_books, recent_activity } = data;
 
   return (
-    <div className="pb-12">
+    <div className="pb-12 space-y-10">
       {/* Header */}
-      <div className="mb-10">
-        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-400 mb-2">
-          Welcome back, {user?.name?.split(' ')[0] || 'Reader'}!
-        </h1>
-        <p className="text-muted-foreground text-lg">Here's what's happening in your library today.</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-card p-6 rounded-2xl border border-border shadow-sm flex items-center gap-4"
-        >
-          <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 text-primary-600 rounded-full flex items-center justify-center shrink-0">
-            <FiBookmark className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Saved Books</p>
-            <p className="text-2xl font-bold text-foreground">{bookmarks.length}</p>
-          </div>
-        </motion.div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="bg-card p-6 rounded-2xl border border-border shadow-sm flex items-center gap-4"
-        >
-          <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 text-green-600 rounded-full flex items-center justify-center shrink-0">
-            <FiClock className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Hours Read</p>
-            <p className="text-2xl font-bold text-foreground">12.5 h</p>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="bg-card p-6 rounded-2xl border border-border shadow-sm flex items-center gap-4"
-        >
-          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center shrink-0">
-            <FiThumbsUp className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Books Finished</p>
-            <p className="text-2xl font-bold text-foreground">4</p>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Continue Reading / Recent Bookmarks */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-          <FiBookmark className="text-primary-500" /> Recently Saved
-        </h2>
-        {bookmarks.length === 0 ? (
-          <div className="bg-muted px-6 py-12 rounded-2xl text-center border border-border border-dashed">
-            <p className="text-muted-foreground">You haven't saved any books yet.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {bookmarks.slice(0, 4).map(book => (
-              <BookCard key={`dash-bm-${book.id}`} book={book} />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* AI Recommendations */}
-      <div className="bg-primary-50 dark:bg-primary-900/10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-10 rounded-3xl">
-        <div className="max-w-7xl mx-auto">
-          <RecommendationCarousel books={recommendations} title="AI Recommends for You" />
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground mb-2">
+            Library <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-indigo-500">Analytics</span>
+          </h1>
+          <p className="text-muted-foreground text-lg">Real-time insights across your digital collection.</p>
+        </div>
+        <div className="text-xs font-medium text-muted-foreground flex items-center gap-2 bg-muted/50 px-3 py-1.5 rounded-lg border border-border">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+          Last synced: {new Date().toLocaleTimeString()}
         </div>
       </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <StatsCard title="Total Books" value={total_books} icon={FiBook} color="blue" />
+        <StatsCard title="Total Comments" value={total_comments} icon={FiMessageSquare} color="purple" trend="+12%" />
+        <StatsCard title="Avg Rating" value={Number(average_rating).toFixed(1)} icon={FiStar} color="amber" />
+        <StatsCard title="PDFs Opened" value={pdf_opened} icon={FiBook} color="emerald" trend="+5%" />
+        <StatsCard title="AI Queries" value={ai_queries} icon={FiActivity} color="rose" />
+        <StatsCard title="Saved Books" value={bookmarks} icon={FiBookmark} color="indigo" />
+      </div>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Activity Trend - Line Chart */}
+        <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
+          <SectionHeader title="7-Day Activity History" icon={FiTrendingUp} subtitle="User interactions over the past week" />
+          <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={activity_trend}>
+                <defs>
+                  <linearGradient id="colorPdf" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
+                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                <XAxis dataKey="date" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Area type="monotone" dataKey="pdf_opens" stroke="#4f46e5" fillOpacity={1} fill="url(#colorPdf)" strokeWidth={3} />
+                <Area type="monotone" dataKey="ai_queries" stroke="#ec4899" fillOpacity={0} strokeWidth={2} strokeDasharray="5 5" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Categories Distribution - Bar Chart */}
+        <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
+          <SectionHeader title="Books per Category" icon={FiBook} subtitle="Distribution across library sections" />
+          <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={category_distribution}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(0,0,0,0.05)' }}
+                  contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '12px', border: '1px solid var(--border)' }}
+                />
+                <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  {category_distribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Distribution Pie & Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Category Share - Pie Chart */}
+        <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
+          <SectionHeader title="Category Share" subtitle="Percentage breakdown of types" />
+          <div className="h-64 w-full flex items-center justify-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={category_distribution}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {category_distribution.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                   contentStyle={{ backgroundColor: 'var(--card)', borderRadius: '12px', border: '1px solid var(--border)' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 justify-center">
+            {category_distribution.slice(0, 4).map((entry, index) => (
+              <div key={entry.name} className="flex items-center gap-1.5 text-xs font-medium">
+                <div className="w-2 ha-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                <span>{entry.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Activity List */}
+        <div className="lg:col-span-2 bg-card p-6 rounded-3xl border border-border shadow-sm">
+          <SectionHeader title="Recent Activity" icon={FiClock} subtitle="Your latest interactions" />
+          <div className="space-y-4">
+            {recent_activity.length > 0 ? (
+              recent_activity.map((log) => (
+                <div key={log.id} className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/50 transition-colors group">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-2 rounded-lg ${
+                      log.event_type === 'pdf_open' ? 'bg-blue-500/10 text-blue-600' :
+                      log.event_type === 'ai_query' ? 'bg-pink-500/10 text-pink-600' :
+                      'bg-indigo-500/10 text-indigo-600'
+                    }`}>
+                      {log.event_type === 'pdf_open' ? <FiBook className="w-4 h-4" /> :
+                       log.event_type === 'ai_query' ? <FiActivity className="w-4 h-4" /> :
+                       <FiBookmark className="w-4 h-4" />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold capitalize">{log.event_type.replace('_', ' ')}</p>
+                      <p className="text-xs text-muted-foreground">Successfully logged for {log.user_identifier}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-medium text-muted-foreground mr-2">{new Date(log.created_at).toLocaleDateString()}</p>
+                    <p className="text-[10px] text-muted-foreground mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-center py-10 text-muted-foreground">No recent activity logged.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Top Performing Books */}
+      <div>
+        <SectionHeader title="Top Rated Books" icon={FiStar} subtitle="Most appreciated titles in the community" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+          {top_books.map((book) => (
+             <div key={`title-${book.title}`} className="bg-card border border-border p-4 rounded-2xl flex flex-col justify-between">
+                <h3 className="font-semibold text-lg line-clamp-1">{book.title}</h3>
+                <p className="text-sm text-muted-foreground">{book.author}</p>
+                <div className="mt-4 flex items-center gap-2 text-sm text-primary-600 font-medium bg-primary-500/10 px-3 py-1.5 rounded-lg w-fit">
+                    <FiMessageSquare /> {book.comment_count} comments
+                </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }

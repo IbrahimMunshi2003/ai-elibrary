@@ -23,7 +23,7 @@ export default function Search() {
       try {
         const query = searchParams.get('q') || '';
         const response = await (query ? apiService.searchBooks(query) : apiService.getBooks());
-        setBooks(response.data);
+        setBooks(response);
       } catch (error) {
         console.error("Search failed:", error);
       } finally {

@@ -42,22 +42,34 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
     setLastQuery(queryText);
 
     try {
-      const historyItems = messages.slice(-10).map(m => `${m.role === 'user' ? 'User' : 'AI'}: ${m.text}`).join('\n');
-      const contextPrefix = bookContext ? `Context: We are discussing the book "${bookContext.title}" by ${bookContext.author}.\n\n` : '';
-      const fullPrompt = `${contextPrefix}History:\n${historyItems}\n\nCurrent Question: ${queryText}`;
+      const contextPrefix = bookContext
+        ? `We are discussing "${bookContext.title}" by ${bookContext.author}. `
+        : "";
 
-      const response = await apiService.askAI(fullPrompt);
-      const answer = response?.data?.answer || "I couldn't process that. Please try again.";
+      console.log("Sending question:", queryText);
+      const response = await apiService.askAI(contextPrefix + queryText);
+      console.log("AI Response:", response.data);
+      await apiService.trackActivity('ai_query');
 
-      setMessages(prev => [...prev, { id: Date.now(), role: 'ai', text: answer, isNew: true }]);
+      const answer = response?.data?.answer || "No response from AI";
+      const cleanAnswer = answer.slice(0, 1000);
+
+      setMessages(prev => [
+        ...prev,
+        { id: Date.now(), role: 'ai', text: cleanAnswer, isNew: true }
+      ]);
     } catch (error) {
-      if (error.response?.status === 429) {
-        toast.error('Too many requests. Please slow down.');
-        setMessages(prev => [...prev, { id: Date.now(), role: 'system', text: 'You have reached the API limit (Quota Exceeded). Please try again later.', isError: true }]);
-      } else {
-        toast.error('Failed to get AI response');
-        setMessages(prev => [...prev, { id: Date.now(), role: 'system', text: 'Oops! I encountered an error while connecting to the server.', isError: true }]);
-      }
+      console.error("AI ERROR:", error);
+
+      setMessages(prev => [
+        ...prev,
+        {
+          id: Date.now(),
+          role: 'system',
+          text: error?.response?.data?.error || "AI server error. Please try again.",
+          isError: true
+        }
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +111,7 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: 300, scale: 0.95 }}
           transition={{ type: "spring", damping: 25, stiffness: 200 }}
-          className="fixed right-0 top-0 bottom-0 w-full sm:w-[450px] bg-card border-l border-border shadow-2xl z-[100] flex flex-col"
+          className="fixed right-0 top-0 bottom-0 w-full sm:w-112.5 bg-card border-l border-border shadow-2xl z-100 flex flex-col"
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border bg-muted/50">

@@ -30,10 +30,13 @@ export default function AdminPanel() {
     fetchBooks();
   }, []);
 
-  const handleDeleteMock = (id) => {
+  const handleDeleteBook = async (id) => {
     if (window.confirm('Are you sure you want to delete this book?')) {
-      setBooks(books.filter(b => b.id !== id));
-      toast.success('Book deleted successfully');
+      const res = await apiService.deleteBook(id);
+      if (res.success || res.error) { // Mock fallback doesn't throw, just warns
+        setBooks(books.filter(b => b.id !== id));
+        toast.success('Book deleted successfully');
+      }
     }
   };
 
@@ -114,7 +117,7 @@ export default function AdminPanel() {
                           <FiEdit2 />
                         </button>
                         <button 
-                          onClick={() => handleDeleteMock(book.id)}
+                          onClick={() => handleDeleteBook(book.id)}
                           className="p-2 text-red-500 bg-red-50 dark:bg-red-900/20 rounded hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                         >
                           <FiTrash2 />

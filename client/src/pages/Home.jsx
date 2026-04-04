@@ -16,8 +16,9 @@ export default function Home() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const response = await apiService.getBooks();
-        setBooks(response.data);
+        const data = await apiService.getBooks();
+        setBooks(data);
+        console.log("Books:", data);
       } catch (error) {
         console.error("Error fetching books:", error);
       } finally {
@@ -33,6 +34,14 @@ export default function Home() {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
+
+  // Group books by category
+  const groupedBooks = books.reduce((acc, book) => {
+    const categoryName = typeof book.category === 'string' ? book.category : (book.category?.name || "Others");
+    if (!acc[categoryName]) acc[categoryName] = [];
+    acc[categoryName].push(book);
+    return acc;
+  }, {});
 
   return (
     <div className="flex flex-col gap-16 pb-12">
@@ -72,50 +81,39 @@ export default function Home() {
                 Search
               </button>
             </form>
-            
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-              <span>Popular:</span>
-              <button onClick={() => navigate('/search?q=react')} className="hover:text-primary-500 transition-colors">React</button>
-              <button onClick={() => navigate('/search?q=ai')} className="hover:text-primary-500 transition-colors">AI</button>
-              <button onClick={() => navigate('/search?q=python')} className="hover:text-primary-500 transition-colors">Python</button>
-            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Featured Books Grid */}
+      {/* Dynamic Category Sections */}
       <section className="px-4">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold flex items-center gap-3">
-              <FiTrendingUp className="text-primary-500" /> Trending Now
-            </h2>
-            <p className="text-muted-foreground mt-2">The most popular books this week</p>
-          </div>
-          <Link to="/search" className="hidden sm:flex items-center gap-2 text-primary-600 hover:text-primary-700 font-medium">
-            View All <FiArrowRight />
-          </Link>
-        </div>
-
         {isLoading ? (
           <GridSkeleton count={4} />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {books.slice(0, 4).map((book, idx) => (
-              <motion.div
-                key={book.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
+          <div className="flex flex-col gap-12">
+            {Object.keys(groupedBooks).map(category => (
+              <motion.div 
+                key={category} 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="category-section"
               >
-                <BookCard book={book} />
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold border-l-4 border-primary-500 pl-4">{category}</h2>
+                  <Link to={`/search?q=${category}`} className="text-sm font-medium text-primary-600 hover:underline">
+                    Explore All
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                  {groupedBooks[category].map(book => (
+                    <BookCard key={book.id} book={book} />
+                  ))}
+                </div>
               </motion.div>
             ))}
           </div>
         )}
-        <Link to="/search" className="sm:hidden mt-6 flex items-center justify-center gap-2 text-primary-600 font-medium w-full py-3 bg-primary-50 dark:bg-primary-900/20 rounded-xl">
-          View All Books <FiArrowRight />
-        </Link>
       </section>
 
       {/* Recommendations Carousel */}

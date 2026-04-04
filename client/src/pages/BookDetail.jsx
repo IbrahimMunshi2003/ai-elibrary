@@ -7,6 +7,7 @@ import { useBookmarkStore } from '../store/bookmarkStore';
 import RecommendationCarousel from '../components/RecommendationCarousel';
 import Loader from '../components/Loader';
 import AIChat from '../components/AIChat';
+import CommentSection from '../components/CommentSection';
 import toast from 'react-hot-toast';
 
 export default function BookDetail() {
@@ -29,9 +30,9 @@ export default function BookDetail() {
           apiService.getBook(id),
           apiService.getBooks() // Using getBooks as standard recommendations for now
         ]);
-        setBook(bookRes.data);
+        setBook(bookRes);
         // Filter out current book from recs
-        setRecommendations(recsRes.data.filter(b => b.id.toString() !== id));
+        setRecommendations(recsRes.filter(b => b.id.toString() !== id));
       } catch (error) {
         toast.error('Failed to load book details');
       } finally {
@@ -45,13 +46,25 @@ export default function BookDetail() {
     fetchBookData();
   }, [id]);
 
-  const handleBookmark = () => {
+  const handleRatingUpdate = async () => {
+    try {
+      const bookRes = await apiService.getBook(id);
+      setBook(bookRes);
+    } catch (error) {
+      console.warn("Failed to refetch rating stats:", error);
+    }
+  };
+
+  const handleBookmark = async () => {
     if (bookmarked) {
       removeBookmark(book.id);
       toast.success('Removed from bookmarks');
+      await apiService.removeBookmark(book.id);
     } else {
       addBookmark(book);
       toast.success('Added to bookmarks');
+      await apiService.addBookmark(book.id);
+      await apiService.trackActivity('bookmark');
     }
   };
 
@@ -112,7 +125,8 @@ export default function BookDetail() {
             <div className="flex flex-wrap items-center gap-6 mb-8 text-sm font-medium">
               <div className="flex items-center gap-1 text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-full">
                 <FiStar className="fill-current w-4 h-4" />
-                <span>{book.rating}</span>
+                <span>{book.rating || 0}</span>
+                <span className="text-muted-foreground font-normal ml-1">({book.commentCount || 0} reviews)</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <FiBook className="w-5 h-5" />
@@ -133,6 +147,7 @@ export default function BookDetail() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 hover:from-primary-500 hover:to-primary-700 text-white shadow-lg hover:shadow-primary-500/25 transition-all w-full sm:w-auto transform hover:-translate-y-1"
+                  onClick={() => apiService.trackActivity('pdf_open')}
                 >
                   <FiBook className="w-5 h-5" /> Read Full Book (PDF)
                 </a>
@@ -186,6 +201,15 @@ export default function BookDetail() {
             </motion.div>
           )}
         </div>
+      </div>
+
+      {/* Comment & Rating Section */}
+      <div className="mt-16 pt-16 border-t border-border">
+        <CommentSection 
+          bookId={book.id} 
+          initialRating={book.rating} 
+          onRatingUpdate={handleRatingUpdate}
+        />
       </div>
 
       {/* Recommendations */}
