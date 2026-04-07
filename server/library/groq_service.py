@@ -4,19 +4,29 @@ from django.conf import settings
 client = Groq(api_key=settings.GROQ_API_KEY)
 
 def ask_groq(question, books=None):
+    from .models import Book
+    
+    all_books = Book.objects.all()
     context = ""
-    if books:
-        context = "Library Books:\n"
-        for book in books[:10]:
-            context += f"- {book.title} by {book.author}\n"
+    if all_books:
+        context = "Library Data:\n"
+        for book in all_books:
+            context += f"ID: {book.id}, Title: {book.title}, Author: {book.author}, URL: http://localhost:5173/books/{book.id}\n"
 
     prompt = f"""
 You are a smart AI assistant for an E-Library.
 
 RULES:
 - You can answer ANY general question using your knowledge.
-- If the question is about books, recommend from the library list.
-- DO NOT say "I couldn't find" or "not available".
+- If a user asks for a specific book, ALWAYS return the closest matching book from the provided list.
+- ALWAYS include a clickable URL from the given data in standard Markdown link format.
+- Format the response clearly:
+    **Title**: [Title]
+    **Author**: [Author]
+    **Link**: [Read Book](URL)
+- Example Link Format: [Read 'The Great Gatsby'](http://localhost:5173/books/12)
+- If exact match is not found, suggest similar books WITH links.
+- NEVER respond with "I couldn't find" or "not available" without suggesting alternatives.
 - Always give a confident and helpful answer.
 - Keep answers clear, simple, and user-friendly.
 

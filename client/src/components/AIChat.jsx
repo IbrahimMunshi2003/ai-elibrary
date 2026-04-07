@@ -5,26 +5,6 @@ import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 
-const TypingText = ({ text }) => {
-  const [displayedText, setDisplayedText] = useState('');
-
-  useEffect(() => {
-    let i = 0;
-    const interval = setInterval(() => {
-      setDisplayedText(text.slice(0, i));
-      i++;
-      if (i > text.length) clearInterval(interval);
-    }, 15);
-    return () => clearInterval(interval);
-  }, [text]);
-
-  return (
-    <div className="prose prose-sm dark:prose-invert max-w-none">
-      <ReactMarkdown>{displayedText}</ReactMarkdown>
-    </div>
-  );
-};
-
 export default function AIChat({ bookContext, isOpen, onClose }) {
   const initialMessage = { id: 0, role: 'ai', text: `Hi! I'm your AI library assistant. Ask me anything about ${bookContext?.title || 'books'}!` };
   const [messages, setMessages] = useState([initialMessage]);
@@ -56,7 +36,7 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
 
       setMessages(prev => [
         ...prev,
-        { id: Date.now(), role: 'ai', text: cleanAnswer, isNew: true }
+        { id: crypto.randomUUID(), role: 'ai', text: cleanAnswer }
       ]);
     } catch (error) {
       console.error("AI ERROR:", error);
@@ -64,7 +44,7 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
       setMessages(prev => [
         ...prev,
         {
-          id: Date.now(),
+          id: crypto.randomUUID(),
           role: 'system',
           text: error?.response?.data?.error || "AI server error. Please try again.",
           isError: true
@@ -81,7 +61,7 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
 
     const userQuery = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: userQuery }]);
+    setMessages(prev => [...prev, { id: crypto.randomUUID(), role: 'user', text: userQuery }]);
     
     await fetchAIResponse(userQuery);
   };
@@ -157,13 +137,17 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
                     }`}
                   >
                     {msg.role === 'ai' ? (
-                      msg.isNew ? (
-                        <TypingText text={msg.text} />
-                      ) : (
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <ReactMarkdown>{msg.text}</ReactMarkdown>
-                        </div>
-                      )
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            a: ({ node, ...props }) => (
+                              <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline" />
+                            ),
+                          }}
+                        >
+                          {msg.text}
+                        </ReactMarkdown>
+                      </div>
                     ) : (
                       <p className="whitespace-pre-wrap">{msg.text}</p>
                     )}
