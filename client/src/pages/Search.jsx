@@ -10,11 +10,12 @@ import { CATEGORIES } from '../utils/constants';
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
+  const initialCategory = searchParams.get('category') || 'All';
   
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [category, setCategory] = useState('All');
+  const [category, setCategory] = useState(initialCategory);
   const [sort, setSort] = useState('recent');
 
   useEffect(() => {
@@ -22,6 +23,8 @@ export default function Search() {
       setIsLoading(true);
       try {
         const query = searchParams.get('q') || '';
+        const cat = searchParams.get('category');
+        if (cat) setCategory(cat);
         const response = await (query ? apiService.searchBooks(query) : apiService.getBooks());
         setBooks(response);
       } catch (error) {

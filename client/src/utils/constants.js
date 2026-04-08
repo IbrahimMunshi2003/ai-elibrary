@@ -6,6 +6,7 @@ export const CATEGORIES = [
   'Artificial Intelligence',
   'Productivity',
   'Business',
+  'Audio Books',
 ];
 
 export const SORT_OPTIONS = [

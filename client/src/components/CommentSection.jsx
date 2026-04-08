@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiStar, FiUser, FiSend, FiTrash2, FiMessageSquare, FiClock } from 'react-icons/fi';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../store/authStore';
 
 export default function CommentSection({ bookId, initialRating, onRatingUpdate }) {
+  const { isAuthenticated } = useAuthStore();
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -156,6 +158,12 @@ export default function CommentSection({ bookId, initialRating, onRatingUpdate }
               <FiMessageSquare className="text-primary-600" /> Write a Review
             </h3>
             
+            {!isAuthenticated ? (
+              <div className="text-center py-8">
+                <FiUser className="w-12 h-12 mx-auto text-muted-foreground mb-3 opacity-50" />
+                <p className="text-muted-foreground font-medium mb-4">Please login to comment</p>
+              </div>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1.5 ml-1">Your Name</label>
@@ -207,6 +215,7 @@ export default function CommentSection({ bookId, initialRating, onRatingUpdate }
                 )}
               </button>
             </form>
+            )}
           </motion.div>
         </div>
 

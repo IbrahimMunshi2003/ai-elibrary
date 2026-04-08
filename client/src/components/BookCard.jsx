@@ -41,10 +41,15 @@ export default function BookCard({ book }) {
             className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
           />
-          <div className="absolute top-2 left-2">
+          <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
             <span className="px-2 py-1 text-xs font-semibold bg-background/90 backdrop-blur-sm text-foreground rounded-md shadow-sm">
               {book.category}
             </span>
+            {(book.audioFile || book.audioUrl || book.audio_url) && (
+              <span className="px-2 py-1 text-xs font-semibold bg-primary-600/90 text-white backdrop-blur-sm rounded-md shadow-sm flex items-center gap-1">
+                🎧 Audiobook Available
+              </span>
+            )}
           </div>
           <button
             onClick={handleBookmark}

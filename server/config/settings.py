@@ -351,6 +351,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # ================================
 
 INSTALLED_APPS = [
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -364,6 +365,8 @@ INSTALLED_APPS = [
 
     'library',
 ]
+
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

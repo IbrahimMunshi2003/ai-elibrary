@@ -60,6 +60,8 @@ export const apiService = {
         // Use full URL for images/pdfs
         coverImage: getFullUrl(book.cover_image) || getFullUrl(book.cover_image_url) || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
         pdfUrl: getFullUrl(book.pdf_file),
+        audioFile: getFullUrl(book.audio_file),
+        audioUrl: book.audio_url,
         rating: book.average_rating || 0,
         commentCount: book.comment_count || 0,
         // Maintain original fields for grouping flexibility if needed
@@ -86,6 +88,8 @@ export const apiService = {
         description: book.description,
         coverImage: getFullUrl(book.cover_image) || getFullUrl(book.cover_image_url) || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
         pdfUrl: getFullUrl(book.pdf_file),
+        audioFile: getFullUrl(book.audio_file),
+        audioUrl: book.audio_url,
         rating: book.average_rating || 0,
         commentCount: book.comment_count || 0,
       };
@@ -110,6 +114,8 @@ export const apiService = {
         description: book.description,
         coverImage: getFullUrl(book.cover_image) || getFullUrl(book.cover_image_url) || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
         pdfUrl: getFullUrl(book.pdf_file),
+        audioFile: getFullUrl(book.audio_file),
+        audioUrl: book.audio_url,
         rating: book.average_rating || 0,
         commentCount: book.comment_count || 0,
       }));

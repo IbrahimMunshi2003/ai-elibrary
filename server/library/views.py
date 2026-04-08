@@ -287,11 +287,12 @@ def get_and_create_comments(request, id):
         return Response(serializer.data)
 
     elif request.method == 'POST':
+        if not request.user.is_authenticated:
+            return Response({"error": "Unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+            
         data = request.data.copy()
         data['book'] = book.id
-        
-        # If user is authenticated, we could pre-fill user_name if it was empty,
-        # but the prompt asks for a Name input from frontend, so we respect that.
+        data['user_name'] = request.user.username
         
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():

@@ -154,6 +154,35 @@ export default function BookDetail() {
               </div>
             )}
 
+            {(book.audioFile || book.audioUrl) ? (
+              <div className="mb-8 p-4 bg-card border border-border rounded-xl shadow-sm">
+                <span className="flex items-center gap-2 mb-3 text-lg font-bold text-foreground">
+                  <span>🎧 Listen Audiobook</span>
+                </span>
+                <audio controls preload="none" className="w-full mt-4" onPlay={() => console.log('Audio URL:', book.audioFile || book.audioUrl)}>
+                  <source src={book.audioFile || book.audioUrl} type="audio/mpeg" />
+                  Your browser does not support audio.
+                </audio>
+                <div className="mt-4">
+                  <button
+                    onClick={() => {
+                      const audioEl = document.querySelector('audio');
+                      if (audioEl) audioEl.play();
+                    }}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-2 rounded-lg font-bold bg-primary-600 hover:bg-primary-700 text-white shadow-md transition-all text-sm"
+                  >
+                    ▶ Play Audio
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-8 p-4 bg-muted/50 border border-border rounded-xl shadow-sm">
+                <span className="flex items-center gap-2 text-lg font-semibold text-muted-foreground">
+                   Audio unavailable
+                </span>
+              </div>
+            )}
+
             {/* AI Actions */}
             <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
               <button

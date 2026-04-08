@@ -55,13 +55,50 @@ class Command(BaseCommand):
                 # Fetch category object
                 category_obj, _ = Category.objects.get_or_create(name=category_name.capitalize())
 
+                # Audiobook mapping logic using LibriVox API
+                audio_url = None
+                librivox_url = f"https://librivox.org/api/feed/audiobooks/?title=^{quote(title)}&format=json"
+                try:
+                    lv_response = requests.get(librivox_url, timeout=5)
+                    if lv_response.status_code == 200:
+                        lv_data = lv_response.json()
+                        if 'books' in lv_data and len(lv_data['books']) > 0:
+                            # Assign the URL to the LibriVox page or a generic audio stream if available
+                            rss_url = lv_data['books'][0].get('url_rss')
+                            if rss_url:
+                                try:
+                                    rss_response = requests.get(rss_url, timeout=5)
+                                    if rss_response.status_code == 200:
+                                        import re
+                                        # Simple regex to find the first mp3 link
+                                        match = re.search(r'url="(https?://[^"]+\.mp3)"', rss_response.text)
+                                        if match:
+                                            audio_url = match.group(1)
+                                except Exception:
+                                    pass
+                            
+                            if not audio_url:
+                                audio_url = lv_data['books'][0].get('url_zip_file')
+                                
+                            if audio_url and '.mp3' in audio_url:
+                                category_obj, _ = Category.objects.get_or_create(name="Audio Books")
+                                self.stdout.write(self.style.SUCCESS(f"  ✓ Audio added: {title}"))
+                            else:
+                                audio_url = None
+                except Exception:
+                    pass
+                
+                if not audio_url:
+                    self.stdout.write(self.style.WARNING(f"  ✗ No audio: {title}"))
+
                 # Create the book instance early (without files first)
                 book = Book(
                     title=title,
                     author=authors,
                     description=description,
                     category=category_obj,
-                    cover_image_url=cover_url
+                    cover_image_url=cover_url,
+                    audio_url=audio_url
                 )
 
                 # Attempt to find PDF on Gutenberg

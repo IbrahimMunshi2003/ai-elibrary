@@ -27,12 +27,13 @@ class BookSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     average_rating = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
+    audio_file = serializers.FileField(required=False)
 
     class Meta:
         model = Book
         fields = [
             'id', 'title', 'author', 'category', 'description', 
-            'pdf_file', 'cover_image', 'cover_image_url', 'published_date', 'created_at',
+            'pdf_file', 'cover_image', 'cover_image_url', 'audio_file', 'audio_url', 'published_date', 'created_at',
             'average_rating', 'comment_count'
         ]
 

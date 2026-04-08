@@ -35,6 +35,7 @@ export default function Navbar() {
             <div className="hidden md:ml-10 md:flex md:space-x-8">
               <Link to="/" className="text-muted-foreground hover:text-foreground inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors">Home</Link>
               <Link to="/search" className="text-muted-foreground hover:text-foreground inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors">Browse</Link>
+              <Link to="/search?category=Audio%20Books" className="text-muted-foreground hover:text-foreground inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors">Audio Books</Link>
               {isAuthenticated && (
                 <Link to="/dashboard" className="text-muted-foreground hover:text-foreground inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors">Dashboard</Link>
               )}
@@ -118,6 +119,7 @@ export default function Navbar() {
               
               <Link to="/" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-muted">Home</Link>
               <Link to="/search" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted">Browse Books</Link>
+              <Link to="/search?category=Audio%20Books" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted">Audio Books</Link>
               
               {isAuthenticated ? (
                 <>
