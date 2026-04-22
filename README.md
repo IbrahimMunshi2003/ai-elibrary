@@ -116,7 +116,7 @@ AI-ELibrary/
 
 ### Frontend (`client/.env`)
 
-VITE_API_URL=https://ai-elibrary-backend.onrender.com/api/
+VITE_API_URL=https://ai-elibrary-backend.onrender.com
 
 
 ### Backend (`server/.env`)
