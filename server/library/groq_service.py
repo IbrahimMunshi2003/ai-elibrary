@@ -57,24 +57,35 @@
 
 #     except Exception as e:
 #         return "AI is temporarily unavailable. Please try again."
-from groq import Groq
 from django.conf import settings
 
 client = None
 
-# Safe initialization (no crash if key missing)
-try:
-    if getattr(settings, "GROQ_API_KEY", None):
-        client = Groq(api_key=settings.GROQ_API_KEY)
-except Exception:
-    client = None
+def get_client():
+    global client
+    if client:
+        return client
+
+    try:
+        from groq import Groq
+        if getattr(settings, "GROQ_API_KEY", None):
+            client = Groq(api_key=settings.GROQ_API_KEY)
+    except Exception:
+        client = None
+
+    return client
 
 
 def ask_groq(question, books=None):
     from .models import Book
-    
+
+    client = get_client()
+    if not client:
+        return "AI is temporarily unavailable. Please try again."
+
     all_books = Book.objects.all()
     context = ""
+
     if all_books:
         context = "Library Data:\n"
         for book in all_books:
@@ -84,25 +95,6 @@ def ask_groq(question, books=None):
     prompt = f"""
 You are a smart AI assistant for an E-Library.
 
-RULES:
-- You can answer ANY general question using your knowledge.
-- If a user asks for a specific book, ALWAYS return the closest matching book from the provided list.
-- Format every response like this:
-
-Title: <Book Title>
-Author: <Author Name>
-
-📖 Read:
-[Read Book](http://localhost:5173/books/<id>)
-
-🎧 Listen: Available / Not Available
-
-- Always return links in markdown format: [Read Book](http://localhost:5173/books/<id>)
-- If exact match is not found, suggest similar books.
-- NEVER respond with "I couldn't find" or "not available" without suggesting alternatives.
-- Always give a confident and helpful answer.
-- Keep answers clear, simple, and user-friendly.
-
 {context}
 
 User Question: {question}
@@ -111,17 +103,12 @@ Answer:
 """
 
     try:
-        # ✅ FIXED INDENTATION
-        if not client:
-            return "AI is temporarily unavailable. Please try again."
-
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
-                {"role": "system", "content": "You are a helpful and intelligent assistant."},
+                {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
         )
 
         return response.choices[0].message.content
