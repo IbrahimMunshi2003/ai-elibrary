@@ -321,38 +321,42 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 import dj_database_url
+import sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load .env file
+# Load environment variables
 load_dotenv()
 
 # ================================
 # SECURITY
 # ================================
 
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-dev-key"
-)
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-dev-key")
 
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False") == "True"
+
+# Force DEBUG False in production
+if 'runserver' not in sys.argv:
+    DEBUG = False
+
 ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
-    "https://ai-elibrary-backend.onrender.com",
-    "*"
+    "ai-elibrary-backend.onrender.com",
 ]
 
-# Groq API
-GROQ_API_KEY = os.getenv("GROQ_API_KEY") 
+# ================================
+# API KEYS
+# ================================
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # ================================
 # INSTALLED APPS
 # ================================
 
 INSTALLED_APPS = [
-    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -360,21 +364,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # Third-party
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
 
+    # Local
     'library',
 ]
 
-
+# ================================
+# REST FRAMEWORK
+# ================================
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
-
 
 # ================================
 # MIDDLEWARE
@@ -383,6 +390,7 @@ REST_FRAMEWORK = {
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'corsheaders.middleware.CorsMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -439,21 +447,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ================================
-# DATABASE (PostgreSQL)
+# DATABASE (Render PostgreSQL)
 # ================================
 
 DATABASES = {
-    # "default": {
-    #     "ENGINE": "django.db.backends.postgresql",
-    #     "NAME": os.getenv("POSTGRES_DB", "reactdjango_db"),
-    #     "USER": os.getenv("POSTGRES_USER", "postgres"),
-    #     "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres_password"),
-    #     "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-    #     "PORT": os.getenv("POSTGRES_PORT", "5432"),
-    # }
-    
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL')
+        default=os.getenv('DATABASE_URL'),
+        conn_max_age=600
     )
 }
 
@@ -484,9 +484,9 @@ USE_TZ = True
 # ================================
 
 STATIC_URL = '/static/'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # ================================
 # MEDIA FILES
@@ -494,6 +494,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# ================================
+# SECURITY (FOR RENDER HTTPS)
+# ================================
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ================================
 # DEFAULT PRIMARY KEY
