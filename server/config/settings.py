@@ -320,6 +320,7 @@ Django settings for config project.
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -442,14 +443,18 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # ================================
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "reactdjango_db"),
-        "USER": os.getenv("POSTGRES_USER", "postgres"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres_password"),
-        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
-    }
+    # "default": {
+    #     "ENGINE": "django.db.backends.postgresql",
+    #     "NAME": os.getenv("POSTGRES_DB", "reactdjango_db"),
+    #     "USER": os.getenv("POSTGRES_USER", "postgres"),
+    #     "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres_password"),
+    #     "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+    #     "PORT": os.getenv("POSTGRES_PORT", "5432"),
+    # }
+    
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL')
+    )
 }
 
 # ================================
