@@ -57,11 +57,6 @@ class BookAdmin(admin.ModelAdmin):
             )
         return "No audio available"
     audio_preview.short_description = "Audio Preview"
-    def pdf_link(self, obj):
-        if obj.pdf_url:
-            return format_html('<a href="{}" target="_blank">📄 View PDF</a>', obj.pdf_url)
-        return "No PDF"
-    pdf_link.short_description = "PDF"
 
     def changelist_view(self, request, extra_context=None):
         if request.method == 'GET' and not getattr(request, '_dashboard_stats_shown', False):
