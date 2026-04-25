@@ -336,7 +336,6 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-dev-key")
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-# Force DEBUG False in production
 if 'runserver' not in sys.argv:
     DEBUG = False
 
@@ -351,22 +350,19 @@ ALLOWED_HOSTS = [
 # ================================
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
 # ================================
-# CLOUDINARY CONFIGURATION
+# CLOUDINARY CONFIGURATION (FIXED)
 # ================================
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+    'SECURE': True,
 }
-import cloudinary
 
-cloudinary.config(
-    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.getenv("CLOUDINARY_API_KEY"),
-    api_secret=os.getenv("CLOUDINARY_API_SECRET")
-)
+CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
@@ -382,14 +378,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Third-party
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
 
-    # Local
     'library',
-    #cloudinary apps for media management
+
     'cloudinary',
     'cloudinary_storage',
 ]
@@ -468,7 +462,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ================================
-# DATABASE (Render PostgreSQL)
+# DATABASE
 # ================================
 
 DATABASES = {
@@ -494,9 +488,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ================================
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
 USE_TZ = True
 
@@ -517,7 +509,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # ================================
-# SECURITY (FOR RENDER HTTPS)
+# SECURITY (RENDER)
 # ================================
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
