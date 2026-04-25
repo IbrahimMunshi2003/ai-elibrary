@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
+from cloudinary_storage.storage import RawMediaCloudinaryStorage
 
 # Category Model for grouping books
 class Category(models.Model):
@@ -19,7 +20,13 @@ class Book(models.Model):
     author = models.CharField(max_length=255)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='books')
     description = models.TextField(blank=True)
-    pdf_file = models.FileField(upload_to='books/pdfs/', blank=True, null=True)
+    # pdf_file = models.FileField(upload_to='books/pdfs/', blank=True, null=True)
+    pdf_file = models.FileField(
+        upload_to='books/pdfs/',
+        storage=RawMediaCloudinaryStorage(),
+        blank=True,
+        null=True
+    )
     audio_file = models.FileField(upload_to='books/audio/', blank=True, null=True)
     cover_image = models.ImageField(upload_to='books/covers/', blank=True, null=True)
     cover_image_url = models.URLField(blank=True, null=True, help_text="URL for the book cover image")

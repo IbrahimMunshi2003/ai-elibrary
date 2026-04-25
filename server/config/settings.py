@@ -352,7 +352,7 @@ ALLOWED_HOSTS = [
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # ================================
-# CLOUDINARY CONFIGURATION (FIXED)
+# CLOUDINARY CONFIG (FINAL)
 # ================================
 
 CLOUDINARY_STORAGE = {
