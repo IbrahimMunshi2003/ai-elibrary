@@ -351,6 +351,17 @@ ALLOWED_HOSTS = [
 # ================================
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# ================================
+# CLOUDINARY CONFIGURATION
+# ================================
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # ================================
 # INSTALLED APPS
@@ -371,6 +382,9 @@ INSTALLED_APPS = [
 
     # Local
     'library',
+    #cloudinary apps for media management
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 # ================================
