@@ -83,6 +83,25 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
     toast.success('Copied to clipboard!');
   };
 
+  // Utility to parse and enhance AI messages
+  const parseAIMessage = (text) => {
+    if (!text) return '';
+    let parsedText = text;
+    
+    // Extract the first URL found in the text to use as the target for the Title
+    const urlMatch = parsedText.match(/https?:\/\/[^\s\)]+/);
+    if (urlMatch) {
+      const url = urlMatch[0];
+      // Convert "Title: Book Name" to "Title: [Book Name](url)" if not already a link
+      parsedText = parsedText.replace(/(Title:\s*)([^\[\n]+)$/gm, `$1[$2](${url})`);
+    }
+
+    // Convert plain URLs to markdown links (ignoring those already inside markdown link syntax)
+    parsedText = parsedText.replace(/(^|[^\]\(])(https?:\/\/[^\s\)]+)/g, '$1[$2]($2)');
+
+    return parsedText;
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -130,22 +149,27 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
                   <div 
                     className={`relative max-w-[90%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed shadow-sm ${
                       msg.role === 'user' 
-                        ? 'bg-primary-600 text-white rounded-br-sm' 
+                        ? 'bg-primary-500/10 text-primary-700 rounded-br-sm' 
                         : msg.role === 'system'
-                          ? 'bg-red-500/10 text-red-500 border border-red-500/20 rounded-bl-sm'
-                          : 'bg-muted border border-border text-foreground rounded-bl-sm'
+                          ? 'bg-red-50 text-red-600 border border-red-200 rounded-bl-sm'
+                          : 'bg-white border border-border text-slate-700 rounded-bl-sm'
                     }`}
                   >
                     {msg.role === 'ai' ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <div className="prose prose-sm max-w-none prose-a:text-primary-500 prose-a:hover:text-primary-700 prose-a:transition-colors prose-a:-underline">
                         <ReactMarkdown
                           components={{
                             a: ({ node, ...props }) => (
-                              <a {...props} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline" />
+                              <a 
+                                {...props} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-primary-500 font-medium hover:text-primary-700 hover:underline transition-colors decoration-2 underline-offset-2" 
+                              />
                             ),
                           }}
                         >
-                          {msg.text}
+                          {parseAIMessage(msg.text)}
                         </ReactMarkdown>
                       </div>
                     ) : (
@@ -220,7 +244,7 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
                       setInput('');
                       fetchAIResponse(suggestion);
                     }}
-                    className="text-xs px-3.5 py-2 bg-primary-50 dark:bg-primary-900/20 hover:bg-primary-100 dark:hover:bg-primary-900/40 hover:text-primary-700 dark:hover:text-primary-300 rounded-full border border-primary-200 dark:border-primary-800 transition-all text-primary-600 font-medium whitespace-nowrap shadow-sm active:scale-95"
+                    className="text-xs px-4 py-2 bg-white hover:bg-primary-50 hover:text-primary-700 rounded-full border border-primary-200 transition-all text-primary-600 font-medium whitespace-nowrap shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] active:scale-95"
                   >
                     {suggestion}
                   </button>
@@ -235,12 +259,12 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={isLoading ? "Please wait..." : "Ask something..."}
                 disabled={isLoading}
-                className="w-full pl-5 pr-14 py-3.5 rounded-2xl bg-muted border border-transparent focus:bg-background focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-none focus:shadow-sm"
+                className="w-full pl-5 pr-14 py-3.5 rounded-full bg-white border border-border focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)]"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="absolute right-3 p-2.5 rounded-xl bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 disabled:hover:bg-primary-600 transition-all shadow-md active:scale-95"
+                className="absolute right-3 p-2.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 disabled:hover:bg-primary-500 transition-all shadow-md active:scale-95"
               >
                 <FiSend className="w-4 h-4" />
               </button>

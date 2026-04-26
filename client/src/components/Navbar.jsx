@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { FiSearch, FiMenu, FiX, FiBookOpen, FiUser } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,6 +9,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -20,22 +21,22 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 glass-card">
+    <nav className="sticky top-0 z-50 bg-white border-b border-border shadow-[0_2px_15px_-3px_rgba(0,0,0,0.02)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo & Desktop Nav */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
-              <FiBookOpen className="w-8 h-8 text-primary-600" />
+              <FiBookOpen className="w-8 h-8 text-primary-500" />
               <span className="font-bold text-xl tracking-tight text-foreground">AI-ELibrary</span>
             </Link>
             
-            <div className="hidden md:ml-10 md:flex md:space-x-8">
-              <Link to="/" className="text-muted-foreground hover:text-foreground inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors">Home</Link>
-              <Link to="/search" className="text-muted-foreground hover:text-foreground inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors">Browse</Link>
-              <Link to="/search?category=Audio%20Books" className="text-muted-foreground hover:text-foreground inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors">Audio Books</Link>
+            <div className="hidden md:ml-10 md:flex md:space-x-8 h-full">
+              <Link to="/" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors h-full ${location.pathname === '/' ? 'border-primary-500 text-primary-600' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'}`}>Home</Link>
+              <Link to="/search" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors h-full ${location.pathname === '/search' && !location.search.includes('category=Audio') ? 'border-primary-500 text-primary-600' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'}`}>Browse</Link>
+              <Link to="/search?category=Audio%20Books" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors h-full ${location.search.includes('category=Audio') ? 'border-primary-500 text-primary-600' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'}`}>Audio Books</Link>
               {isAuthenticated && (
-                <Link to="/dashboard" className="text-muted-foreground hover:text-foreground inline-flex items-center px-1 pt-1 text-sm font-medium transition-colors">Dashboard</Link>
+                <Link to="/dashboard" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors h-full ${location.pathname === '/dashboard' ? 'border-primary-500 text-primary-600' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'}`}>Dashboard</Link>
               )}
             </div>
           </div>
@@ -66,7 +67,7 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center space-x-4">
                 <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground">Login</Link>
-                <Link to="/signup" className="text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-full transition-colors">Sign Up</Link>
+                <Link to="/signup" className="text-sm font-medium bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-full transition-colors">Sign Up</Link>
               </div>
             )}
           </div>

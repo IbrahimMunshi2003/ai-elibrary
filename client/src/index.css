@@ -3,19 +3,24 @@
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
   
-  --color-primary-50: #f5f3ff;
-  --color-primary-100: #ede9fe;
-  --color-primary-500: #8b5cf6;
-  --color-primary-600: #7c3aed;
-  --color-primary-700: #6d28d9;
+  --color-primary-50: #e7f1ec;
+  --color-primary-100: #c2e0d3;
+  --color-primary-200: #9dd0bc;
+  --color-primary-300: #78c0a5;
+  --color-primary-400: #52b08e;
+  --color-primary-500: #0d7751;
+  --color-primary-600: #0a6142;
+  --color-primary-700: #084931;
+  --color-primary-800: #063121;
+  --color-primary-900: #041910;
 
   --color-background: #ffffff;
   --color-foreground: #0f172a;
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
+  --color-muted: #f9fafb;
+  --color-muted-foreground: #475569;
   --color-card: #ffffff;
   --color-card-foreground: #0f172a;
-  --color-border: #e2e8f0;
+  --color-border: #e5e7eb;
 }
 
 @layer base {
@@ -38,6 +43,14 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-slate-200/50;
+    @apply bg-white border-b border-border;
+  }
+  
+  .btn-primary {
+    @apply rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600 transition-colors shadow-sm;
+  }
+
+  .btn-secondary {
+    @apply rounded-lg border border-primary-500 text-primary-500 font-medium hover:bg-primary-50 transition-colors;
   }
 }
