@@ -43,16 +43,7 @@ export default function Navbar() {
 
           {/* Desktop Right Side */}
           <div className="hidden md:flex items-center space-x-6">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                placeholder="Search books..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64 pl-10 pr-4 py-2 rounded-full bg-muted border-transparent focus:bg-background focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none text-sm transition-all"
-              />
-              <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            </form>
+        
 
             {isAuthenticated ? (
               <div className="flex items-center gap-4">

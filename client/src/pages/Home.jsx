@@ -58,7 +58,7 @@ export default function Home() {
             className="w-full flex flex-col items-center text-center"
           >
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground mb-6">
-              Hi, I'm your AI Library Assistant
+             Welcome to AI-ELibrary: Your Ultimate AI-Powered Book Companion
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl">
               Can I help you find a book, summarize a PDF, or explain a complex topic today?
@@ -92,14 +92,17 @@ export default function Home() {
             
             {/* Quick Prompts */}
             <div className="flex flex-wrap justify-center gap-3 mt-10 w-full px-2">
-              <button type="button" onClick={() => setSearchQuery("Adventures")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
-                "Adventures"
+              <button type="button" onClick={() => setSearchQuery("Adventure")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
+                "Adventure"
               </button>
               <button type="button" onClick={() => setSearchQuery("Politics")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
                 "Politics"
               </button>
               <button type="button" onClick={() => setSearchQuery("Crime")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis hidden md:block border border-border">
                 "Crime"
+              </button>
+              <button type="button" onClick={() => setSearchQuery("History")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis hidden md:block border border-border">
+                "history"
               </button>
             </div>
           </motion.div>

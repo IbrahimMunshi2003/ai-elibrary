@@ -1,12 +1,10 @@
 export const CATEGORIES = [
   'All',
-  'Software Engineering',
-  'System Design',
-  'Data Science',
-  'Artificial Intelligence',
-  'Productivity',
-  'Business',
-  'Audio Books',
+  'History',
+  'Adventure',
+  'Politics',
+  'Crime',
+
 ];
 
 export const SORT_OPTIONS = [
