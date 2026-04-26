@@ -165,7 +165,7 @@ export default function CommentSection({ bookId, initialRating, onRatingUpdate }
               </div>
             ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium mb-1.5 ml-1">Your Name</label>
                 <input
                   type="text"
@@ -175,7 +175,7 @@ export default function CommentSection({ bookId, initialRating, onRatingUpdate }
                   className="w-full px-4 py-2.5 rounded-xl bg-muted/30 border border-border focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all outline-none"
                   required
                 />
-              </div>
+              </div> */}
 
               <div>
                 <label className="block text-sm font-medium mb-1.5 ml-1">Rating</label>

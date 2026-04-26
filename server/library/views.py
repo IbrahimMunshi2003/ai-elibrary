@@ -395,7 +395,7 @@ def dashboard_stats(request):
 
     # Top Books (most comments as a proxy, or highest rated)
     # Group by book title, order by comments
-    top_books = list(Book.objects.annotate(comment_count=Count('comments')).order_by('-comment_count')[:5].values('title', 'author', 'comment_count'))
+    top_books = list(Book.objects.annotate(comment_count=Count('comments')).order_by('-comment_count')[:5].values('id', 'title', 'author', 'comment_count'))
 
     return JsonResponse({
         "total_books": total_books,

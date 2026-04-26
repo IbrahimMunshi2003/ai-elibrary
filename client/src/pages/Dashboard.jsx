@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FiBook, FiMessageSquare, FiStar, FiBookmark, 
@@ -190,56 +191,29 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Activity List */}
+        {/* Top Performing Books */}
         <div className="lg:col-span-2 bg-card p-6 rounded-3xl border border-border shadow-sm">
-          <SectionHeader title="Recent Activity" icon={FiClock} subtitle="Your latest interactions" />
-          <div className="space-y-4">
-            {recent_activity.length > 0 ? (
-              recent_activity.map((log) => (
-                <div key={log.id} className="flex items-center justify-between p-3 rounded-xl border border-border hover:bg-muted/50 transition-colors group">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-lg ${
-                      log.event_type === 'pdf_open' ? 'bg-blue-500/10 text-blue-600' :
-                      log.event_type === 'ai_query' ? 'bg-pink-500/10 text-pink-600' :
-                      'bg-indigo-500/10 text-indigo-600'
-                    }`}>
-                      {log.event_type === 'pdf_open' ? <FiBook className="w-4 h-4" /> :
-                       log.event_type === 'ai_query' ? <FiActivity className="w-4 h-4" /> :
-                       <FiBookmark className="w-4 h-4" />}
+          <SectionHeader title="Your Top Books" icon={FiStar} subtitle="Highest rated books from your collection" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {top_books.length > 0 ? (
+              top_books.map((book) => (
+                <Link to={`/books/${book.id}`} key={`title-${book.title}`} className="bg-background border border-border p-4 rounded-2xl flex flex-col justify-between hover:shadow-md transition-all hover:-translate-y-1 block">
+                    <h3 className="font-semibold text-lg line-clamp-1 group-hover:text-primary-600 transition-colors">{book.title}</h3>
+                    <p className="text-sm text-muted-foreground">{book.author}</p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm text-primary-600 font-medium bg-primary-500/10 px-3 py-1.5 rounded-lg w-fit">
+                          <FiMessageSquare /> {book.comment_count}
+                      </div>
+                      <div className="flex items-center gap-1 text-sm font-semibold text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-lg">
+                          <FiStar className="fill-amber-500" /> {Number(book.rating || book.average_rating || 0).toFixed(1)}
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold capitalize">{log.event_type.replace('_', ' ')}</p>
-                      <p className="text-xs text-muted-foreground">Successfully logged for {log.user_identifier}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-medium text-muted-foreground mr-2">{new Date(log.created_at).toLocaleDateString()}</p>
-                    <p className="text-[10px] text-muted-foreground mr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </div>
+                </Link>
               ))
             ) : (
-              <p className="text-center py-10 text-muted-foreground">No recent activity logged.</p>
+              <p className="text-muted-foreground col-span-full py-10 text-center">No top-rated books to display from your collection yet.</p>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Top Performing Books */}
-      <div>
-        <SectionHeader title="Top Rated Books" icon={FiStar} subtitle="Most appreciated titles in the community" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-          {top_books.map((book) => (
-             <div key={`title-${book.title}`} className="bg-card border border-border p-4 rounded-2xl flex flex-col justify-between">
-                <h3 className="font-semibold text-lg line-clamp-1">{book.title}</h3>
-                <p className="text-sm text-muted-foreground">{book.author}</p>
-                <div className="mt-4 flex items-center gap-2 text-sm text-primary-600 font-medium bg-primary-500/10 px-3 py-1.5 rounded-lg w-fit">
-                    <FiMessageSquare /> {book.comment_count} comments
-                </div>
-            </div>
-          ))}
         </div>
       </div>
 
