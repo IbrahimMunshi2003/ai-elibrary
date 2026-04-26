@@ -12,13 +12,18 @@ export default function Layout() {
   // Initialize dark mode on mount
   useEffect(() => {
     initTheme();
+    
+    // Allow external components (like mobile nav) to toggle AI chat
+    const handleToggleAI = () => setIsChatOpen(prev => !prev);
+    window.addEventListener('toggleAIChat', handleToggleAI);
+    return () => window.removeEventListener('toggleAIChat', handleToggleAI);
   }, [initTheme]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col transition-colors duration-200">
+    <div className="w-full min-h-screen overflow-x-hidden bg-background text-foreground flex flex-col transition-colors duration-200">
       <Navbar />
       
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8 relative">
         <Outlet />
       </main>
 

@@ -77,7 +77,7 @@ export default function Dashboard() {
   const { total_books, total_comments, average_rating, pdf_opened, ai_queries, bookmarks, category_distribution, activity_trend, top_books, recent_activity } = data;
 
   return (
-    <div className="pb-12 space-y-10">
+    <div className="w-full min-h-screen pb-12 space-y-10">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
@@ -103,11 +103,11 @@ export default function Dashboard() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full">
         {/* Activity Trend - Line Chart */}
         <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
           <SectionHeader title="7-Day Activity History" icon={FiTrendingUp} subtitle="User interactions over the past week" />
-          <div className="h-80 w-full">
+          <div className="h-[400px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={activity_trend}>
                 <defs>
@@ -132,7 +132,7 @@ export default function Dashboard() {
         {/* Categories Distribution - Bar Chart */}
         <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
           <SectionHeader title="Books per Category" icon={FiBook} subtitle="Distribution across library sections" />
-          <div className="h-80 w-full">
+          <div className="h-[400px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={category_distribution}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
@@ -154,11 +154,11 @@ export default function Dashboard() {
       </div>
 
       {/* Distribution Pie & Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
         {/* Category Share - Pie Chart */}
         <div className="bg-card p-6 rounded-3xl border border-border shadow-sm">
           <SectionHeader title="Category Share" subtitle="Percentage breakdown of types" />
-          <div className="h-64 w-full flex items-center justify-center">
+          <div className="h-[300px] w-full flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie

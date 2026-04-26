@@ -139,7 +139,7 @@ export default function Home() {
 
       {/* Recommendations Carousel */}
       <section className="bg-muted/30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-12 rounded-3xl">
-        <div className="max-w-7xl mx-auto">
+        <div className="w-full">
           {isLoading ? (
             <div className="h-64 flex items-center justify-center">
               <Loader />

@@ -22,7 +22,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-border shadow-[0_2px_15px_-3px_rgba(0,0,0,0.02)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo & Desktop Nav */}
           <div className="flex items-center">
@@ -91,7 +91,7 @@ export default function Navbar() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden border-t border-border overflow-hidden bg-background"
+            className="md:hidden absolute top-full left-0 w-full bg-background shadow-md border-t border-border overflow-hidden z-50"
           >
             <div className="px-4 pt-2 pb-4 space-y-1">
               <form onSubmit={handleSearch} className="relative mb-4 mt-2">
@@ -105,14 +105,24 @@ export default function Navbar() {
                 <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               </form>
               
-              <Link to="/" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-muted">Home</Link>
-              <Link to="/search" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted">Browse Books</Link>
-              <Link to="/search?category=Audio%20Books" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted">Audio Books</Link>
+              <Link to="/" onClick={() => setIsMenuOpen(false)} className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/' ? 'text-primary-600 bg-primary-50' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>Home</Link>
+              <Link to="/search" onClick={() => setIsMenuOpen(false)} className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/search' && !location.search.includes('category=Audio') ? 'text-primary-600 bg-primary-50' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>Browse Books</Link>
+              <Link to="/search?category=Audio%20Books" onClick={() => setIsMenuOpen(false)} className={`block px-3 py-2 rounded-md text-base font-medium ${location.search.includes('category=Audio') ? 'text-primary-600 bg-primary-50' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>Audio Books</Link>
+              <button 
+                onClick={() => { 
+                  setIsMenuOpen(false); 
+                  document.dispatchEvent(new CustomEvent('toggleAIChat')); 
+                  window.dispatchEvent(new Event('toggleAIChat')); 
+                }} 
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted"
+              >
+                AI Chat
+              </button>
               
               {isAuthenticated ? (
                 <>
-                  <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted">Dashboard</Link>
-                  <Link to="/bookmarks" onClick={() => setIsMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted">Bookmarks</Link>
+                  <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/dashboard' ? 'text-primary-600 bg-primary-50' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>Dashboard</Link>
+                  <Link to="/bookmarks" onClick={() => setIsMenuOpen(false)} className={`block px-3 py-2 rounded-md text-base font-medium ${location.pathname === '/bookmarks' ? 'text-primary-600 bg-primary-50' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>Bookmarks</Link>
                   <button onClick={() => { logout(); setIsMenuOpen(false); }} className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-500 hover:bg-muted">Logout</button>
                 </>
               ) : (
