@@ -92,14 +92,14 @@ export default function Home() {
             
             {/* Quick Prompts */}
             <div className="flex flex-wrap justify-center gap-3 mt-10 w-full px-2">
-              <button type="button" onClick={() => setSearchQuery("Find books about artificial intelligence")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
-                "Find books about artificial intelligence"
+              <button type="button" onClick={() => setSearchQuery("Adventures")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
+                "Adventures"
               </button>
-              <button type="button" onClick={() => setSearchQuery("Summarize clean code principles")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
-                "Summarize clean code principles"
+              <button type="button" onClick={() => setSearchQuery("Politics")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
+                "Politics"
               </button>
-              <button type="button" onClick={() => setSearchQuery("Best self-help audiobooks")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis hidden md:block border border-border">
-                "Best self-help audiobooks"
+              <button type="button" onClick={() => setSearchQuery("Crime")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis hidden md:block border border-border">
+                "Crime"
               </button>
             </div>
           </motion.div>

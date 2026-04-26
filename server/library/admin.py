@@ -14,7 +14,7 @@ class CategoryAdmin(admin.ModelAdmin):
 # Register Books
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'category', 'average_rating', 'has_pdf', 'has_audio', 'created_at')
+    list_display = ('title', 'author', 'category', 'average_rating', 'pdf_link', 'has_audio', 'created_at')
     list_filter = ('category', 'created_at')
     search_fields = ('title', 'author')
     ordering = ('-created_at',)
@@ -24,14 +24,24 @@ class BookAdmin(admin.ModelAdmin):
             'fields': ('title', 'author', 'category', 'description', 'published_date')
         }),
         ('Media', {
-            'fields': ('cover_image', 'cover_image_url', 'pdf_file', 'audio_file', 'audio_url', 'audio_preview')
+            'fields': ('cover_image', 'cover_image_url', 'pdf_url', 'pdf_file', 'pdf_viewer', 'audio_file', 'audio_url', 'audio_preview')
         }),
     )
-    readonly_fields = ('audio_preview', 'created_at')
+    readonly_fields = ('pdf_viewer', 'audio_preview', 'created_at')
 
-    @admin.display(boolean=True, description='Has PDF')
-    def has_pdf(self, obj):
-        return bool(obj.pdf_file)
+    @admin.display(description='PDF Link')
+    def pdf_link(self, obj):
+        url = obj.get_pdf()
+        if url:
+            return format_html('<a href="{}" target="_blank">📖 View PDF</a>', url)
+        return "No PDF"
+
+    def pdf_viewer(self, obj):
+        url = obj.get_pdf()
+        if url:
+            return format_html('<a href="{}" target="_blank">📖 Open PDF in New Tab</a>', url)
+        return "No PDF uploaded or linked"
+    pdf_viewer.short_description = "Check PDF access"
 
     @admin.display(boolean=True, description='Has Audio')
     def has_audio(self, obj):

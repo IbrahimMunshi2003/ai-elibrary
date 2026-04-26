@@ -27,12 +27,20 @@ class Book(models.Model):
         blank=True,
         null=True
     )
+    pdf_url = models.URLField(blank=True, null=True, help_text="External URL to the PDF file (e.g., Cloudinary link)")
     audio_file = models.FileField(upload_to='books/audio/', blank=True, null=True)
     cover_image = models.ImageField(upload_to='books/covers/', blank=True, null=True)
     cover_image_url = models.URLField(blank=True, null=True, help_text="URL for the book cover image")
     audio_url = models.URLField(null=True, blank=True)
     published_date = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def get_pdf(self):
+        if self.pdf_url:
+            return self.pdf_url
+        if self.pdf_file:
+            return self.pdf_file.url
+        return None
 
     def __str__(self):
         return self.title

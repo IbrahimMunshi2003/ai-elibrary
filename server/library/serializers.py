@@ -28,15 +28,19 @@ class BookSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     audio_file = serializers.FileField(required=False)
+    pdf = serializers.SerializerMethodField()
 
     class Meta:
         model = Book
         fields = [
             'id', 'title', 'author', 'category', 'description', 
-            'pdf_file', 'cover_image', 'cover_image_url', 'audio_file', 'audio_url', 'published_date', 'created_at',
+            'pdf', 'pdf_url', 'pdf_file', 'cover_image', 'cover_image_url', 'audio_file', 'audio_url', 'published_date', 'created_at',
             'average_rating', 'comment_count'
         ]
 
+    def get_pdf(self, obj):
+        return obj.get_pdf()
+        
     def get_average_rating(self, obj):
         # Calculate dynamic average
         # Default to 0.0 if no comments
