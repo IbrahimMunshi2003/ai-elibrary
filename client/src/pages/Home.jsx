@@ -46,41 +46,62 @@ export default function Home() {
   return (
     <div className="flex flex-col gap-16 pb-12">
       {/* Hero Section */}
-      <section className="relative pt-12 pb-20 lg:pt-24 lg:pb-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-500/10 via-transparent to-primary-600/5 dark:from-primary-900/20 dark:to-primary-900/10 pointer-events-none" />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-500/20 blur-[100px] rounded-full pointer-events-none transform translate-x-1/3 -translate-y-1/3" />
+      <section className="relative pt-20 pb-24 lg:pt-32 lg:pb-36 overflow-hidden flex flex-col items-center justify-center min-h-[70vh]">
+        {/* Subtle Background Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-500/10 blur-[120px] rounded-full pointer-events-none animate-[pulse_4s_ease-in-out_infinite]" />
         
-        <div className="relative z-10 text-center max-w-4xl mx-auto px-4">
+        <div className="relative z-10 w-full max-w-4xl mx-auto px-4 sm:px-6 flex flex-col items-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="w-full flex flex-col items-center text-center"
           >
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-semibold mb-6 text-sm">
-              <FiCpu className="w-4 h-4" /> Next-Gen Digital Library
-            </span>
-            <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 leading-tight">
-              Unlock Knowledge with <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-primary-400">AI Power</span>
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground mb-6">
+              Hi, I'm your AI Library Assistant
             </h1>
-            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
-              Discover, read, and understand books faster than ever. Get AI-generated summaries and chat directly with your library.
+            <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl">
+              Can I help you find a book, summarize a PDF, or explain a complex topic today?
             </p>
             
-            <form onSubmit={handleSearch} className="max-w-xl mx-auto relative mb-8">
-              <input
-                type="text"
-                placeholder="Search for your next great read..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-6 pr-32 py-4 rounded-full bg-card border border-border text-foreground shadow-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-lg"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-2 bottom-2 bg-primary-600 hover:bg-primary-700 text-white px-6 rounded-full font-medium transition-colors flex items-center gap-2 shadow-md"
-              >
-                Search
+            {/* Copilot-style Chatbox */}
+            <div className="w-full max-w-3xl relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary-400 to-purple-400 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
+              <form onSubmit={handleSearch} className="relative flex flex-col sm:flex-row items-center w-full bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-2 overflow-hidden">
+                <button type="button" className="hidden sm:flex items-center justify-center p-4 text-muted-foreground hover:text-primary-600 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                </button>
+                <input
+                  type="text"
+                  placeholder="Ask anything about books, PDFs, or summaries..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-transparent border-none outline-none px-4 py-4 sm:py-0 text-foreground text-lg placeholder-slate-400 flex-1"
+                />
+                <button
+                  type="submit"
+                  className="w-full sm:w-auto mt-2 sm:mt-0 flex items-center justify-center gap-2 bg-foreground text-background hover:bg-zinc-800 px-6 py-4 rounded-2xl sm:rounded-full font-medium transition-colors shadow-md"
+                >
+                  <span>Search</span>
+                  <FiArrowRight className="w-5 h-5" />
+                </button>
+              </form>
+            </div>
+            
+            {/* Quick Prompts */}
+            <div className="flex flex-wrap justify-center gap-3 mt-10 w-full px-2">
+              <button type="button" onClick={() => setSearchQuery("Find books about artificial intelligence")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
+                "Find books about artificial intelligence"
               </button>
-            </form>
+              <button type="button" onClick={() => setSearchQuery("Summarize clean code principles")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
+                "Summarize clean code principles"
+              </button>
+              <button type="button" onClick={() => setSearchQuery("Best self-help audiobooks")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis hidden md:block border border-border">
+                "Best self-help audiobooks"
+              </button>
+            </div>
           </motion.div>
         </div>
       </section>
@@ -132,14 +153,14 @@ export default function Home() {
       {/* Features Outline */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4 text-center">
         <div className="flex flex-col items-center bg-card p-8 rounded-2xl border border-border shadow-sm">
-          <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 text-primary-600 mb-6 rounded-2xl flex items-center justify-center">
+          <div className="w-16 h-16 bg-primary-100 text-primary-600 mb-6 rounded-2xl flex items-center justify-center">
             <FiBook className="w-8 h-8" />
           </div>
           <h3 className="text-xl font-semibold mb-3">Vast Collection</h3>
           <p className="text-muted-foreground">Access thousands of books ranging from programming to business and beyond.</p>
         </div>
         <div className="flex flex-col items-center bg-card p-8 rounded-2xl border border-border shadow-sm">
-          <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/30 text-primary-600 mb-6 rounded-2xl flex items-center justify-center">
+          <div className="w-16 h-16 bg-primary-100 text-primary-600 mb-6 rounded-2xl flex items-center justify-center">
             <FiCpu className="w-8 h-8" />
           </div>
           <h3 className="text-xl font-semibold mb-3">AI Summaries</h3>

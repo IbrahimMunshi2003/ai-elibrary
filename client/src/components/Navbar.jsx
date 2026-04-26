@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useThemeStore } from '../store/themeStore';
 import { useAuthStore } from '../store/authStore';
-import { FiSun, FiMoon, FiSearch, FiMenu, FiX, FiBookOpen, FiUser } from 'react-icons/fi';
+import { FiSearch, FiMenu, FiX, FiBookOpen, FiUser } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
-  const { isDarkMode, toggleDarkMode } = useThemeStore();
   const { isAuthenticated, logout, user } = useAuthStore();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,7 +26,7 @@ export default function Navbar() {
           {/* Logo & Desktop Nav */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
-              <FiBookOpen className="w-8 h-8 text-primary-600 dark:text-primary-500" />
+              <FiBookOpen className="w-8 h-8 text-primary-600" />
               <span className="font-bold text-xl tracking-tight text-foreground">AI-ELibrary</span>
             </Link>
             
@@ -55,19 +53,11 @@ export default function Navbar() {
               <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             </form>
 
-            <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-              aria-label="Toggle Dark Mode"
-            >
-              {isDarkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
-            </button>
-
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <Link to="/bookmarks" className="text-sm font-medium text-muted-foreground hover:text-foreground">Bookmarks</Link>
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-700 dark:text-primary-300">
+                  <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700">
                     <FiUser />
                   </div>
                   <button onClick={logout} className="text-sm font-medium text-muted-foreground hover:text-foreground">Logout</button>
@@ -83,9 +73,6 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <div className="flex items-center md:hidden gap-4">
-            <button onClick={toggleDarkMode} className="text-muted-foreground">
-              {isDarkMode ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
-            </button>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
