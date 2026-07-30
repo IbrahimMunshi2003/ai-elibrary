@@ -343,6 +343,8 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     "ai-elibrary-backend.onrender.com",
+    ".onrender.com",
+    "*",
 ]
 
 # ================================
@@ -424,11 +426,13 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
     "https://ai-elibrary.vercel.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://ai-elibrary.vercel.app",
@@ -467,9 +471,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL"),
+        default=os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
         conn_max_age=600,
-        ssl_require=True,
+        ssl_require=False,
     )
 }
 

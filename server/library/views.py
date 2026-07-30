@@ -14,6 +14,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 # ==========================================
 # AUTHENTICATION API
 # ==========================================
+import logging
+logger = logging.getLogger(__name__)
+
 class SignupAPIView(APIView):
     """
     Handles User Signup via POST request.
@@ -23,47 +26,64 @@ class SignupAPIView(APIView):
     authentication_classes = []
 
     def post(self, request):
-        username = str(request.data.get('username', '')).strip()
-        email = str(request.data.get('email', '')).strip()
-        password = str(request.data.get('password', '')).strip()
+        try:
+            username = str(request.data.get('username', '')).strip()
+            email = str(request.data.get('email', '')).strip()
+            password = str(request.data.get('password', '')).strip()
 
-        if not username or not password:
-            return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+            if not username or not password:
+                return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        from django.contrib.auth.models import User
-        if User.objects.filter(username=username).exists():
-            return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+            from django.contrib.auth.models import User
+            if User.objects.filter(username=username).exists():
+                return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.create_user(username=username, email=email, password=password)
-        
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-            'user_id': user.id,
-            'username': user.username
-        }, status=status.HTTP_201_CREATED)
+            if email and User.objects.filter(email=email).exists():
+                return Response({'error': 'Email is already registered'}, status=status.HTTP_400_BAD_REQUEST)
+
+            user = User.objects.create_user(username=username, email=email, password=password)
+            
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user_id': user.id,
+                'username': user.username
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.exception("Error during user signup:")
+            return Response({'error': f'Signup failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginAPIView(APIView):
     """
     Handles User Login via POST request.
     Returns JWT access & refresh tokens, user_id, and username if successful.
     """
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
     def post(self, request):
-        username = str(request.data.get('username', '')).strip()
-        password = str(request.data.get('password', '')).strip()
-        
-        user = authenticate(username=username, password=password)
-        if user:
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'user_id': user.id, 
-                'username': user.username
-            }, status=status.HTTP_200_OK)
+        try:
+            username = str(request.data.get('username', '')).strip()
+            password = str(request.data.get('password', '')).strip()
             
-        return Response({'error': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            if not username or not password:
+                return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+            user = authenticate(username=username, password=password)
+            if user:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                    'user_id': user.id, 
+                    'username': user.username
+                }, status=status.HTTP_200_OK)
+                
+            return Response({'error': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            logger.exception("Error during user login:")
+            return Response({'error': f'Login failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 # ==========================================

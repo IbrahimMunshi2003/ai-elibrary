@@ -149,24 +149,30 @@
 from django.conf import settings
 import os
 import requests
+import logging
+
+logger = logging.getLogger(__name__)
 
 def ask_groq(question, books=None):
     from .models import Book
 
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    GROQ_API_KEY = getattr(settings, "GROQ_API_KEY", None) or os.getenv("GROQ_API_KEY")
+    if GROQ_API_KEY:
+        GROQ_API_KEY = GROQ_API_KEY.strip().strip("'\"")
 
     if not GROQ_API_KEY:
+        logger.error("[Groq AI] GROQ_API_KEY is not configured in settings or environment variables.")
         return "AI is temporarily unavailable. Missing API Key."
 
     FRONTEND_URL = os.getenv("FRONTEND_URL", "https://ai-elibrary.vercel.app")
 
     try:
         all_books = Book.objects.all()
-    except:
+    except Exception as e:
+        logger.warning(f"[Groq AI] Could not fetch books context: {e}")
         all_books = []
 
     context = ""
-
     if all_books:
         context = "Library Data:\n"
         for book in all_books:
@@ -200,13 +206,18 @@ Answer:
 
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=15)
-        print("Status:", response.status_code)
+        logger.info(f"[Groq AI] Response Status Code: {response.status_code}")
 
-        response.raise_for_status()
+        if response.status_code != 200:
+            logger.error(f"[Groq AI Error] Status: {response.status_code}, Response: {response.text}")
+            return f"AI is temporarily unavailable. (Status {response.status_code})"
+
         data = response.json()
-
         return data["choices"][0]["message"]["content"]
 
+    except requests.exceptions.RequestException as req_err:
+        logger.error(f"[Groq AI Request Error]: {req_err}")
+        return "AI is temporarily unavailable. Please try again."
     except Exception as e:
-        print("GROQ ERROR:", str(e))
+        logger.error(f"[Groq AI Exception]: {e}")
         return "AI is temporarily unavailable. Please try again."
