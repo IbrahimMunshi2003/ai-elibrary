@@ -1,13 +1,13 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://ai-elibrary-backend.onrender.com');
+let rawBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://ai-elibrary-backend.onrender.com');
 
-// const api = axios.create({
-//   baseURL: `${API_BASE_URL}/api`,
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-// });
+// Normalize base URL to prevent duplicate '/api/api' routing issues:
+// Strips any trailing slashes and trailing '/api' path segments.
+rawBaseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
+
+export const API_BASE_URL = rawBaseUrl;
+
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
 });
@@ -185,6 +185,15 @@ export const apiService = {
       const errorMsg = error.response?.data?.error || error.response?.data?.detail || error.message || "Signup failed";
       console.error("Signup Error:", errorMsg);
       throw new Error(errorMsg);
+    }
+  },
+  getCategories: async () => {
+    try {
+      const response = await api.get('/categories/');
+      return response.data;
+    } catch (err) {
+      console.warn("Categories API error:", err);
+      return [];
     }
   },
 
