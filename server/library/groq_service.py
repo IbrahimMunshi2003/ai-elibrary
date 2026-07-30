@@ -164,8 +164,6 @@ def ask_groq(question, books=None):
         logger.error("[Groq AI] GROQ_API_KEY is not configured in settings or environment variables.")
         return "AI is temporarily unavailable. Missing API Key."
 
-    FRONTEND_URL = os.getenv("FRONTEND_URL", "https://ai-elibrary.vercel.app")
-
     try:
         all_books = Book.objects.all()
     except Exception as e:
@@ -174,14 +172,36 @@ def ask_groq(question, books=None):
 
     context = ""
     if all_books:
-        context = "Library Data:\n"
         for book in all_books:
-            audio_avail = "Yes" if book.audio_url else "No"
-            context += f"ID: {book.id}, Title: {book.title}, Author: {book.author}, PDF link: {FRONTEND_URL}/books/{book.id}, Audio available: {audio_avail}\n"
+            # Determine PDF URL (prioritize pdf_file's Cloudinary URL, then external pdf_url)
+            try:
+                if book.pdf_file:
+                    pdf_url = book.pdf_file.url
+                elif book.pdf_url:
+                    pdf_url = book.pdf_url
+                else:
+                    pdf_url = "PDF Not Available"
+            except Exception:
+                pdf_url = book.pdf_url if book.pdf_url else "PDF Not Available"
+
+            audio_url = book.audio_url if book.audio_url else "Audio Not Available"
+            category_name = book.category.name if book.category else "Others"
+
+            context += (
+                f"ID: {book.id}\n"
+                f"Title: {book.title}\n"
+                f"Author: {book.author}\n"
+                f"Category: {category_name}\n"
+                f"Description: {book.description}\n"
+                f"PDF URL: {pdf_url}\n"
+                f"Audio URL: {audio_url}\n"
+                f"-------------------\n"
+            )
 
     prompt = f"""
 You are a smart AI assistant for an E-Library.
 
+Library Data:
 {context}
 
 User Question: {question}
@@ -196,10 +216,37 @@ Answer:
         "Content-Type": "application/json"
     }
 
+    system_instruction = """
+You are a smart AI assistant for an E-Library. Your task is to search and suggest books to users from the Library Data provided in the prompt.
+
+CRITICAL RULES:
+1. Search books intelligently. If an exact match does not exist, suggest similar books from the Library Data.
+2. NEVER invent links. Do not create frontend URLs (e.g. '/books/{id}') or any external URLs that are not provided in the Library Data. Only use URLs that exist in the database Library Data.
+3. If no PDF exists for a book, return "PDF Not Available".
+4. If no audio exists for a book, return "Audio Not Available".
+5. Always return the actual PDF URL (which is a Cloudinary URL from the 'PDF URL' field of the book) exactly as provided. Every generated PDF link must be directly clickable and open the Cloudinary PDF.
+6. Format your response in clean Markdown. Keep responses concise and user-friendly.
+7. You must respond in the exact following format for each book (do not add extra markdown links if the URL is provided on its own line):
+
+## <Book Title>
+Author: <Book Author>
+
+Description:
+<Book Description>
+
+📖 Read Book
+<Actual Cloudinary PDF URL or "PDF Not Available">
+
+🎧 Audio
+<Actual Audio URL or "Audio Not Available">
+
+If multiple books match the user's query, list ALL matching books with their actual PDF URLs, each formatted in the structure above.
+"""
+
     payload = {
         "model": "llama-3.1-8b-instant",
         "messages": [
-            {"role": "system", "content": "You are a helpful assistant for an e-library."},
+            {"role": "system", "content": system_instruction},
             {"role": "user", "content": prompt}
         ]
     }

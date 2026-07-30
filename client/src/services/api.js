@@ -3,8 +3,15 @@ import axios from 'axios';
 let rawBaseUrl = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://ai-elibrary-backend.onrender.com');
 
 // Normalize base URL to prevent duplicate '/api/api' routing issues:
-// Strips any trailing slashes and trailing '/api' path segments.
-rawBaseUrl = rawBaseUrl.replace(/\/+$/, '').replace(/\/api$/, '');
+// Strips any trailing slashes, leading/trailing quotes, whitespace, and trailing '/api' path segments.
+if (typeof rawBaseUrl === 'string') {
+  rawBaseUrl = rawBaseUrl.trim().replace(/^['"]|['"]$/g, '');
+  rawBaseUrl = rawBaseUrl.replace(/\/+$/, '');
+  while (rawBaseUrl.endsWith('/api')) {
+    rawBaseUrl = rawBaseUrl.slice(0, -4);
+    rawBaseUrl = rawBaseUrl.replace(/\/+$/, '');
+  }
+}
 
 export const API_BASE_URL = rawBaseUrl;
 
@@ -48,62 +55,41 @@ export const getFullUrl = (path) => {
 export const apiService = {
   // Books API Integration
   getBooks: async () => {
-    try {
-      const response = await api.get('/books/');
-      
-      // Handle pagination wrapper or direct array
-      const data = response.data.results || response.data || [];
-      
-      // Map DRF response to match what the frontend expects
-      const formattedBooks = data.map((book) => ({
-        id: book.id,
-        title: book.title,
-        author: book.author,
-        category: book.category ? book.category.name : 'Others',
-        description: book.description,
-        // Use full URL for images/pdfs
-        coverImage: getFullUrl(book.cover_image) || getFullUrl(book.cover_image_url) || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
-        pdfUrl: book.pdf || book.pdf_url || getFullUrl(book.pdf_file),
-        audioFile: getFullUrl(book.audio_file),
-        audioUrl: book.audio_url,
-        rating: book.average_rating || 0,
-        commentCount: book.comment_count || 0,
-        // Maintain original fields for grouping flexibility if needed
-        cover_image: book.cover_image,
-        cover_image_url: book.cover_image_url
-      }));
-      
-      return formattedBooks;
-    } catch (err) {
-      console.warn("Backend unavailable or empty. Falling back to mock data.", err);
-      const { books } = await import('../utils/constants.js');
-      return books;
-    }
+    const response = await api.get('/books/');
+    const data = response.data.results || response.data || [];
+    
+    return data.map((book) => ({
+      id: book.id,
+      title: book.title,
+      author: book.author,
+      category: book.category ? book.category.name : 'Others',
+      description: book.description,
+      coverImage: getFullUrl(book.cover_image) || getFullUrl(book.cover_image_url) || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
+      pdfUrl: book.pdf || book.pdf_url || getFullUrl(book.pdf_file),
+      audioFile: getFullUrl(book.audio_file),
+      audioUrl: book.audio_url,
+      rating: book.average_rating || 0,
+      commentCount: book.comment_count || 0,
+      cover_image: book.cover_image,
+      cover_image_url: book.cover_image_url
+    }));
   },
   getBook: async (id) => {
-    try {
-      const response = await api.get(`/books/${id}/`);
-      const book = response.data;
-      return {
-        id: book.id,
-        title: book.title,
-        author: book.author,
-        category: book.category ? book.category.name : 'Others',
-        description: book.description,
-        coverImage: getFullUrl(book.cover_image) || getFullUrl(book.cover_image_url) || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
-        pdfUrl: book.pdf || book.pdf_url || getFullUrl(book.pdf_file),
-        audioFile: getFullUrl(book.audio_file),
-        audioUrl: book.audio_url,
-        rating: book.average_rating || 0,
-        commentCount: book.comment_count || 0,
-      };
-    } catch (err) {
-      console.warn("Direct book fetch failed, trying local find:", err);
-      const books = await apiService.getBooks();
-      const book = books.find(b => b.id.toString() === id.toString());
-      if (book) return book;
-      throw new Error('Book not found');
-    }
+    const response = await api.get(`/books/${id}/`);
+    const book = response.data;
+    return {
+      id: book.id,
+      title: book.title,
+      author: book.author,
+      category: book.category ? book.category.name : 'Others',
+      description: book.description,
+      coverImage: getFullUrl(book.cover_image) || getFullUrl(book.cover_image_url) || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
+      pdfUrl: book.pdf || book.pdf_url || getFullUrl(book.pdf_file),
+      audioFile: getFullUrl(book.audio_file),
+      audioUrl: book.audio_url,
+      rating: book.average_rating || 0,
+      commentCount: book.comment_count || 0,
+    };
   },
   searchBooks: async (query) => {
     try {
