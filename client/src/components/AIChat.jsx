@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { FiX, FiSend, FiLoader, FiMessageSquare, FiCopy, FiRefreshCw, FiTrash2, FiUser } from 'react-icons/fi';
+import { FiX, FiSend, FiLoader, FiMessageSquare, FiCopy, FiRefreshCw, FiTrash2 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
-import { useAuthStore } from '../store/authStore';
 
 export default function AIChat({ bookContext, isOpen, onClose }) {
-  const { isAuthenticated } = useAuthStore();
   const initialMessage = { id: 0, role: 'ai', text: `Hi! I'm your AI library assistant. Ask me anything about ${bookContext?.title || 'books'}!` };
   const [messages, setMessages] = useState([initialMessage]);
   const [input, setInput] = useState('');
@@ -138,17 +136,16 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
             </div>
           </div>
 
-          <div className="flex flex-col flex-1 overflow-hidden">
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto w-full p-4 space-y-5 flex flex-col">
-              <AnimatePresence initial={false}>
-                {messages.map((msg) => (
-                  <motion.div 
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex flex-col group ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
-                  >
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto w-full p-4 space-y-5 flex flex-col">
+            <AnimatePresence initial={false}>
+              {messages.map((msg) => (
+                <motion.div 
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex flex-col group ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                >
                   <div 
                     className={`relative max-w-[90%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed shadow-sm ${
                       msg.role === 'user' 
@@ -222,72 +219,56 @@ export default function AIChat({ bookContext, isOpen, onClose }) {
               </motion.div>
             )}
             <div ref={messagesEndRef} className="h-1" />
-            </div>
+          </div>
 
-            {/* Input Area OR Login Prompt */}
-            <div className="p-4 border-t border-border bg-background shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
-              {!isAuthenticated ? (
-                <div className="flex flex-col items-center justify-center p-6 text-center space-y-3 bg-muted/30 rounded-2xl border border-dashed border-border mb-2">
-                  <FiUser className="w-8 h-8 text-muted-foreground/60 mb-1" />
-                  <h4 className="text-foreground font-semibold text-sm">Login Required</h4>
-                  <p className="text-muted-foreground text-xs leading-relaxed max-w-[250px]">
-                    You need to be logged in to interact with the AI Library Assistant at this time.
-                  </p>
-                  <a href="/login" className="inline-flex mt-2 items-center justify-center px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 hover:shadow-lg transition-all active:scale-95">
-                    Log In Now
-                  </a>
-                </div>
-              ) : (
-                <>
-                  {/* Suggested Prompts */}
-                  {messages.length === 1 && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 }}
-                      className="flex flex-wrap gap-2 mb-3"
-                    >
-                      {["Recommend me a book", "List available categories", "What are the most popular books?"].map((suggestion, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={(e) => {
-                            // Instantly set input and trigger submission
-                            e.preventDefault();
-                            setInput(suggestion);
-                            // Since setInput is async, we submit it manually to fetch AI right away
-                            setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: suggestion }]);
-                            setInput('');
-                            fetchAIResponse(suggestion);
-                          }}
-                          className="text-xs px-4 py-2 bg-white hover:bg-primary-50 hover:text-primary-700 rounded-full border border-primary-200 transition-all text-primary-600 font-medium whitespace-nowrap shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] active:scale-95"
-                        >
-                          {suggestion}
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                  
-                  <form onSubmit={handleSubmit} className="relative flex items-center">
-                    <input
-                      type="text"
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder={isLoading ? "Please wait..." : "Ask something..."}
-                      disabled={isLoading}
-                      className="w-full pl-5 pr-14 py-3.5 rounded-full bg-white border border-border focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)]"
-                    />
-                    <button
-                      type="submit"
-                      disabled={!input.trim() || isLoading}
-                      className="absolute right-3 p-2.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 disabled:hover:bg-primary-500 transition-all shadow-md active:scale-95"
-                    >
-                      <FiSend className="w-4 h-4" />
-                    </button>
-                  </form>
-                </>
-              )}
-            </div>
+          {/* Input Area */}
+          <div className="p-4 border-t border-border bg-background shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)]">
+            {/* Suggested Prompts */}
+            {messages.length === 1 && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="flex flex-wrap gap-2 mb-3"
+              >
+                {["Recommend me a book", "List available categories", "What are the most popular books?"].map((suggestion, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      // Instantly set input and trigger submission
+                      e.preventDefault();
+                      setInput(suggestion);
+                      // Since setInput is async, we submit it manually to fetch AI right away
+                      setMessages(prev => [...prev, { id: Date.now(), role: 'user', text: suggestion }]);
+                      setInput('');
+                      fetchAIResponse(suggestion);
+                    }}
+                    className="text-xs px-4 py-2 bg-white hover:bg-primary-50 hover:text-primary-700 rounded-full border border-primary-200 transition-all text-primary-600 font-medium whitespace-nowrap shadow-[0_2px_15px_-3px_rgba(0,0,0,0.05)] active:scale-95"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+            
+            <form onSubmit={handleSubmit} className="relative flex items-center">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={isLoading ? "Please wait..." : "Ask something..."}
+                disabled={isLoading}
+                className="w-full pl-5 pr-14 py-3.5 rounded-full bg-white border border-border focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 outline-none text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)]"
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || isLoading}
+                className="absolute right-3 p-2.5 rounded-full bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-50 disabled:hover:bg-primary-500 transition-all shadow-md active:scale-95"
+              >
+                <FiSend className="w-4 h-4" />
+              </button>
+            </form>
           </div>
         </motion.div>
       )}
