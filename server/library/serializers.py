@@ -115,10 +115,16 @@ class BookSerializer(serializers.ModelSerializer):
         return self.get_audio_url(obj)
 
     def get_average_rating(self, obj):
+        annotated_rating = getattr(obj, 'average_rating_value', None)
+        if annotated_rating is not None:
+            return round(annotated_rating, 1)
         result = obj.comments.aggregate(Avg('rating'))['rating__avg']
         return round(result, 1) if result is not None else 0.0
 
     def get_comment_count(self, obj):
+        annotated_count = getattr(obj, 'comment_count_value', None)
+        if annotated_count is not None:
+            return annotated_count
         return obj.comments.count()
 
 class BookmarkSerializer(serializers.ModelSerializer):

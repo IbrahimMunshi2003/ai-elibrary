@@ -1,10 +1,62 @@
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from .models import ActivityLog, Book, Category, Comment, UserActivity
 from .serializers import BookSerializer
+
+
+@override_settings(
+    CORS_ALLOWED_ORIGINS=[
+        "https://ai-elibrary.vercel.app",
+        "https://ai-elibrary-f8dmmo3bv-ibrahimmunshi2003-2405s-projects.vercel.app",
+    ],
+    CORS_ALLOWED_ORIGIN_REGEXES=[
+        r"^https://ai-elibrary-[a-z0-9-]+-ibrahimmunshi2003-2405s-projects\.vercel\.app$",
+    ],
+)
+class ProductionCorsTests(TestCase):
+    def test_production_origin_receives_cors_headers(self):
+        response = self.client.get(
+            "/api/books/",
+            HTTP_ORIGIN="https://ai-elibrary.vercel.app",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Access-Control-Allow-Origin"],
+            "https://ai-elibrary.vercel.app",
+        )
+
+    def test_preview_origin_receives_preflight_headers(self):
+        response = self.client.options(
+            "/api/books/",
+            HTTP_ORIGIN=(
+                "https://ai-elibrary-f8dmmo3bv-ibrahimmunshi2003-2405s-projects"
+                ".vercel.app"
+            ),
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
+            HTTP_ACCESS_CONTROL_REQUEST_HEADERS="authorization,content-type",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Access-Control-Allow-Origin"],
+            "https://ai-elibrary-f8dmmo3bv-ibrahimmunshi2003-2405s-projects"
+            ".vercel.app",
+        )
+        self.assertIn("GET", response["Access-Control-Allow-Methods"])
+
+    def test_unrelated_origin_is_not_allowed(self):
+        response = self.client.options(
+            "/api/books/",
+            HTTP_ORIGIN="https://not-this-project.vercel.app",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
+        )
+
+        self.assertNotIn("Access-Control-Allow-Origin", response)
 
 
 class CommentDeletionPermissionTests(APITestCase):
@@ -186,5 +238,5 @@ class BookApiIntegrationTests(APITestCase):
         response = self.client.get(reverse("api-search"), {"q": "Uploaded Admin"})
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data[0]["id"], self.book.id)
-        self.assertEqual(response.data[0]["pdf_url"], self.book.pdf_url)
+        self.assertEqual(response.data["results"][0]["id"], self.book.id)
+        self.assertEqual(response.data["results"][0]["pdf_url"], self.book.pdf_url)

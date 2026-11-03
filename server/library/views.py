@@ -89,7 +89,7 @@ class LoginAPIView(APIView):
 # ==========================================
 # DASHBOARD API
 # ==========================================
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
 
@@ -161,7 +161,6 @@ class DashboardAPIView(APIView):
 # ==========================================
 from rest_framework import generics, viewsets
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly, IsAdminUser
-from django.db.models import Q
 from .serializers import CategorySerializer, BookmarkSerializer
 
 class CategoryListAPIView(generics.ListAPIView):
@@ -182,7 +181,10 @@ class BookViewSet(viewsets.ModelViewSet):
     ViewSet for viewing and editing books.
     Public can view. Only Admin (staff) can create, update, delete.
     """
-    queryset = Book.objects.all().order_by('-created_at')
+    queryset = Book.objects.select_related('category').annotate(
+        average_rating_value=Avg('comments__rating'),
+        comment_count_value=Count('comments', distinct=True),
+    ).order_by('-created_at')
     serializer_class = BookSerializer
     pagination_class = BookPagination
 
@@ -191,6 +193,13 @@ class BookViewSet(viewsets.ModelViewSet):
             return [AllowAny()]
         return [IsAdminUser()]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        category = self.request.query_params.get('category')
+        if category and category != 'All':
+            queryset = queryset.filter(category__name__iexact=category)
+        return queryset
+
 class SearchAPIView(generics.ListAPIView):
     """
     Searches books by title, author, or category.
@@ -198,16 +207,26 @@ class SearchAPIView(generics.ListAPIView):
     authentication_classes = []
     permission_classes = [AllowAny]
     serializer_class = BookSerializer
+    pagination_class = BookPagination
     
     def get_queryset(self):
         query = self.request.GET.get('q', '')
+        category = self.request.GET.get('category')
+        queryset = Book.objects.select_related('category').annotate(
+            average_rating_value=Avg('comments__rating'),
+            comment_count_value=Count('comments', distinct=True),
+        )
         if query:
-            return Book.objects.filter(
+            queryset = queryset.filter(
                 Q(title__icontains=query) |
                 Q(author__icontains=query) |
                 Q(category__name__icontains=query)
-            ).distinct().order_by('-created_at')
-        return Book.objects.none()
+            )
+        if category and category != 'All':
+            queryset = queryset.filter(category__name__iexact=category)
+        if not query and not category:
+            return Book.objects.none()
+        return queryset.order_by('-created_at').distinct()
 
 class BookmarkViewSet(viewsets.ModelViewSet):
     """
@@ -217,7 +236,9 @@ class BookmarkViewSet(viewsets.ModelViewSet):
     serializer_class = BookmarkSerializer
     
     def get_queryset(self):
-        return Bookmark.objects.filter(user=self.request.user).order_by('-created_at')
+        return Bookmark.objects.filter(
+            user=self.request.user
+        ).select_related('book__category').order_by('-created_at')
         
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

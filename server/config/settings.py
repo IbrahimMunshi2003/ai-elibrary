@@ -455,6 +455,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://ai-elibrary.vercel.app",
+    "https://ai-elibrary-f8dmmo3bv-ibrahimmunshi2003-2405s-projects.vercel.app",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://ai-elibrary-[a-z0-9-]+-ibrahimmunshi2003-2405s-projects\.vercel\.app$",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -463,6 +468,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://ai-elibrary.vercel.app",
+    "https://ai-elibrary-f8dmmo3bv-ibrahimmunshi2003-2405s-projects.vercel.app",
 ]
 
 # ================================
