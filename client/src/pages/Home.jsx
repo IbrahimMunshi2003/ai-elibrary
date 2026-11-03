@@ -1,18 +1,16 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiArrowRight, FiBook, FiCpu, FiTrendingUp } from 'react-icons/fi';
-import { Link, useNavigate } from 'react-router-dom';
+import { FiBook, FiCpu, FiTrendingUp } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
 import { apiService } from '../services/api';
 import BookCard from '../components/BookCard';
 import RecommendationCarousel from '../components/RecommendationCarousel';
 import Loader, { GridSkeleton } from '../components/Loader';
+import HomeAssistant from '../components/HomeAssistant';
 
 export default function Home() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const navigate = useNavigate();
-
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -27,13 +25,6 @@ export default function Home() {
     };
     fetchBooks();
   }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
 
   // Group books by category
   const groupedBooks = books.reduce((acc, book) => {
@@ -64,47 +55,7 @@ export default function Home() {
               Can I help you find a book, summarize a PDF, or explain a complex topic today?
             </p>
             
-            {/* Copilot-style Chatbox */}
-            <div className="w-full max-w-3xl relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary-400 to-purple-400 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
-              <form onSubmit={handleSearch} className="relative flex flex-col sm:flex-row items-center w-full bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-2 overflow-hidden">
-                <button type="button" className="hidden sm:flex items-center justify-center p-4 text-muted-foreground hover:text-primary-600 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                  </svg>
-                </button>
-                <input
-                  type="text"
-                  placeholder="Ask anything about books, PDFs, or summaries..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent border-none outline-none px-4 py-4 sm:py-0 text-foreground text-lg placeholder-slate-400 flex-1"
-                />
-                <button
-                  type="submit"
-                  className="w-full sm:w-auto mt-2 sm:mt-0 flex items-center justify-center gap-2 bg-foreground text-background hover:bg-zinc-800 px-6 py-4 rounded-2xl sm:rounded-full font-medium transition-colors shadow-md"
-                >
-                  <span>Search</span>
-                  <FiArrowRight className="w-5 h-5" />
-                </button>
-              </form>
-            </div>
-            
-            {/* Quick Prompts */}
-            <div className="flex flex-wrap justify-center gap-3 mt-10 w-full px-2">
-              <button type="button" onClick={() => setSearchQuery("Adventure")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
-                "Adventure"
-              </button>
-              <button type="button" onClick={() => setSearchQuery("Politics")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis border border-border">
-                "Politics"
-              </button>
-              <button type="button" onClick={() => setSearchQuery("Crime")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis hidden md:block border border-border">
-                "Crime"
-              </button>
-              <button type="button" onClick={() => setSearchQuery("History")} className="px-4 py-2 bg-muted hover:bg-slate-200 text-sm text-foreground rounded-full transition-colors whitespace-nowrap overflow-hidden text-ellipsis hidden md:block border border-border">
-                "history"
-              </button>
-            </div>
+            <HomeAssistant />
           </motion.div>
         </div>
       </section>

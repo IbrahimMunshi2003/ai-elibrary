@@ -1,9 +1,27 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { FiSearch, FiFilter } from 'react-icons/fi';
-import { CATEGORIES, SORT_OPTIONS } from '../utils/constants';
+import { apiService } from '../services/api';
+import { SORT_OPTIONS } from '../utils/constants';
 
 export default function SearchBar({ onSearch, onCategoryChange, onSortChange, initialQuery = '' }) {
   const [query, setQuery] = useState(initialQuery);
+  const [categories, setCategories] = useState(['All']);
+
+  useEffect(() => {
+    let isMounted = true;
+    apiService.getCategories().then((data) => {
+      if (!isMounted) return;
+      const categoryList = Array.isArray(data) ? data : data?.results || [];
+      const names = categoryList
+        .map((category) => (typeof category === 'string' ? category : category?.name))
+        .filter(Boolean);
+      setCategories(['All', ...names]);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -34,7 +52,7 @@ export default function SearchBar({ onSearch, onCategoryChange, onSortChange, in
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center gap-2 overflow-x-auto w-full pb-2 sm:pb-0 hide-scrollbar">
           <FiFilter className="text-muted-foreground hidden sm:block shrink-0" />
-          {CATEGORIES.map(category => (
+          {categories.map(category => (
             <button
               key={category}
               onClick={() => onCategoryChange(category)}

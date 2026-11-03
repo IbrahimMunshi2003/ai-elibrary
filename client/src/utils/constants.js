@@ -1,12 +1,3 @@
-export const CATEGORIES = [
-  'All',
-  'History',
-  'Adventure',
-  'Politics',
-  'Crime',
-
-];
-
 export const SORT_OPTIONS = [
   { value: 'recent', label: 'Recently Added' },
   { value: 'title_asc', label: 'Title (A-Z)' },
