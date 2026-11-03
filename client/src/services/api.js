@@ -89,8 +89,8 @@ const normalizeBook = (book) => {
 // Mock data to enable frontend build before backend is ready
 export const apiService = {
   // Books API Integration
-  getBooks: async () => {
-    const response = await api.get('/books/');
+  getBooks: async (params = {}) => {
+    const response = await api.get('/books/', { params });
     const data = response.data.results || response.data || [];
     
     return data.map(normalizeBook);
@@ -100,9 +100,11 @@ export const apiService = {
     const book = response.data;
     return normalizeBook(book);
   },
-  searchBooks: async (query) => {
+  searchBooks: async (query, params = {}) => {
     try {
-      const response = await api.get(`/search/?q=${encodeURIComponent(query)}`);
+      const response = await api.get('/search/', {
+        params: { ...params, q: query || undefined },
+      });
       const data = response.data.results || response.data || [];
       
       const formattedBooks = data.map(normalizeBook);

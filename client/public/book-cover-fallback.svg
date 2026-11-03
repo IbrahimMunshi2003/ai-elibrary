@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" role="img" aria-labelledby="title">
+  <title>Book cover unavailable</title>
+  <rect width="600" height="800" fill="#e7f1ec"/>
+  <path d="M170 170h260v460H170z" fill="#0d7751" rx="12"/>
+  <path d="M210 230h180M210 280h180M210 330h130" stroke="#fff" stroke-width="18" stroke-linecap="round" opacity=".9"/>
+  <path d="M170 170c-28 0-50 22-50 50v430c0-28 22-50 50-50h260c28 0 50 22 50 50V220c0-28-22-50-50-50H170z" fill="none" stroke="#084931" stroke-width="14"/>
+  <text x="300" y="540" fill="#fff" font-family="sans-serif" font-size="32" text-anchor="middle">AI E-Library</text>
+</svg>

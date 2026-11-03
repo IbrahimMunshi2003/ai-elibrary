@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { apiService } from '../services/api';
 import SearchBar from '../components/SearchBar';
 import BookCard from '../components/BookCard';
 import { GridSkeleton } from '../components/Loader';
-import { CATEGORIES } from '../utils/constants';
 
 export default function Search() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -13,19 +12,19 @@ export default function Search() {
   const initialCategory = searchParams.get('category') || 'All';
   
   const [books, setBooks] = useState([]);
-  const [filteredBooks, setFilteredBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [category, setCategory] = useState(initialCategory);
   const [sort, setSort] = useState('recent');
+  const category = initialCategory;
 
   useEffect(() => {
     const fetchResults = async () => {
       setIsLoading(true);
       try {
         const query = searchParams.get('q') || '';
-        const cat = searchParams.get('category');
-        if (cat) setCategory(cat);
-        const response = await (query ? apiService.searchBooks(query) : apiService.getBooks());
+        const cat = searchParams.get('category') || 'All';
+        const response = query
+          ? await apiService.searchBooks(query, { category: cat })
+          : await apiService.getBooks(cat === 'All' ? {} : { category: cat });
         setBooks(response);
       } catch (error) {
         console.error("Search failed:", error);
@@ -37,31 +36,28 @@ export default function Search() {
     fetchResults();
   }, [searchParams]);
 
-  // Handle client-side filtering and sorting since we are mocking
-  useEffect(() => {
+  const filteredBooks = useMemo(() => {
     let result = [...books];
-    
-    // Filter
-    if (category !== 'All') {
-      result = result.filter(b => b.category === category);
-    }
-    
-    // Sort
     result.sort((a, b) => {
       if (sort === 'title_asc') return a.title.localeCompare(b.title);
       if (sort === 'title_desc') return b.title.localeCompare(a.title);
       return 0; // recent (default from mock data)
     });
-    
-    setFilteredBooks(result);
-  }, [books, category, sort]);
+    return result;
+  }, [books, sort]);
 
   const handleSearch = (query) => {
-    if (query) {
-      setSearchParams({ q: query });
-    } else {
-      setSearchParams({});
-    }
+    const nextParams = {};
+    if (query) nextParams.q = query;
+    if (category !== 'All') nextParams.category = category;
+    setSearchParams(nextParams);
+  };
+
+  const handleCategoryChange = (nextCategory) => {
+    const nextParams = {};
+    if (initialQuery) nextParams.q = initialQuery;
+    if (nextCategory !== 'All') nextParams.category = nextCategory;
+    setSearchParams(nextParams);
   };
 
   return (
@@ -73,7 +69,7 @@ export default function Search() {
         <SearchBar 
           onSearch={handleSearch} 
           initialQuery={initialQuery}
-          onCategoryChange={setCategory}
+          onCategoryChange={handleCategoryChange}
           onSortChange={setSort}
         />
       </div>
@@ -97,7 +93,7 @@ export default function Search() {
           <h3 className="text-2xl font-bold mb-2">No books found</h3>
           <p className="text-muted-foreground">Try adjusting your search or filters to find what you're looking for.</p>
           <button 
-            onClick={() => { setSearchParams({}); setCategory('All'); }}
+            onClick={() => setSearchParams({})}
             className="mt-6 text-primary-600 bg-primary-50 dark:bg-primary-900/20 px-6 py-2 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/40 transition-colors"
           >
             Clear Filters & Search
