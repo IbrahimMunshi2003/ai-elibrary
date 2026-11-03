@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
@@ -126,6 +127,50 @@ class BookApiIntegrationTests(APITestCase):
         self.assertEqual(data["pdf"], self.book.pdf_url)
         self.assertEqual(data["pdf_url"], self.book.pdf_url)
         self.assertEqual(data["cover_image"], self.book.cover_image_url)
+
+    def test_local_cover_uses_media_url_instead_of_cloudinary_storage_url(self):
+        book = Book.objects.create(
+            title="Local Cover Book",
+            author="Test Author",
+            cover_image="books/covers/download_1_Rzfnmn4.jpeg",
+            cover_image_url=(
+                "https://res.cloudinary.com/dmihwrfpm/image/upload/v1/"
+                "media/books/covers/download_1_Rzfnmn4.jpeg"
+            ),
+        )
+
+        data = BookSerializer(book).data
+
+        self.assertEqual(
+            data["cover_image"],
+            f"{settings.MEDIA_URL}books/covers/download_1_Rzfnmn4.jpeg",
+        )
+        self.assertEqual(data["cover_image_url"], data["cover_image"])
+
+    def test_local_cover_media_url_is_served_when_debug_is_false(self):
+        book = Book.objects.create(
+            title="Served Local Cover",
+            author="Test Author",
+            cover_image="books/covers/download_1_Rzfnmn4.jpeg",
+        )
+
+        response = self.client.get(BookSerializer(book).data["cover_image"])
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/jpeg")
+
+    def test_missing_local_cover_does_not_fall_back_to_cloudinary_path(self):
+        book = Book.objects.create(
+            title="Missing Local Cover",
+            author="Test Author",
+            cover_image="books/covers/missing-cover.jpeg",
+            cover_image_url=(
+                "https://res.cloudinary.com/dmihwrfpm/image/upload/v1/"
+                "media/books/covers/missing-cover.jpeg"
+            ),
+        )
+
+        self.assertIsNone(BookSerializer(book).data["cover_image"])
 
     def test_public_books_endpoint_returns_normalized_book_fields(self):
         response = self.client.get(reverse("api-books-list"))

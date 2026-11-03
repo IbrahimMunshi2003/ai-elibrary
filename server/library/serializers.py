@@ -1,3 +1,7 @@
+import os
+from urllib.parse import quote
+
+from django.conf import settings
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.db.models import Avg
@@ -67,8 +71,28 @@ class BookSerializer(serializers.ModelSerializer):
     def get_cover_image(self, obj):
         return self.get_cover_image_url(obj)
 
+    @staticmethod
+    def _local_media_url(file_field):
+        if not file_field or not getattr(file_field, 'name', None):
+            return None
+
+        relative_name = str(file_field.name).replace('\\', '/').lstrip('/')
+        media_root = os.path.abspath(str(settings.MEDIA_ROOT))
+        local_path = os.path.abspath(os.path.join(media_root, relative_name))
+        try:
+            is_inside_media_root = os.path.commonpath([media_root, local_path]) == media_root
+        except ValueError:
+            is_inside_media_root = False
+
+        if not is_inside_media_root or not os.path.isfile(local_path):
+            return None
+
+        return f"{settings.MEDIA_URL.rstrip('/')}/{quote(relative_name, safe='/')}"
+
     def get_cover_image_url(self, obj):
-        return self._safe_file_url(obj.cover_image) or self._safe_external_url(obj.cover_image_url)
+        if obj.cover_image and getattr(obj.cover_image, 'name', None):
+            return self._local_media_url(obj.cover_image)
+        return self._safe_external_url(obj.cover_image_url)
 
     def get_pdf(self, obj):
         return self.get_pdf_url(obj)
