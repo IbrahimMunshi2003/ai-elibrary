@@ -46,9 +46,44 @@ api.interceptors.response.use(
 
 // Helper to build full URLs for media files from backend
 export const getFullUrl = (path) => {
-  if (!path) return null;
-  if (path.startsWith('http')) return path;
-  return `${API_BASE_URL}${path}`;
+  if (typeof path !== 'string' || !path.trim()) return null;
+
+  const value = path.trim();
+  if (/^(?:[a-z][a-z\d+\-.]*:)?\/\//i.test(value) || value.startsWith('data:')) {
+    return value;
+  }
+
+  return `${API_BASE_URL}/${value.replace(/^\/+/, '')}`;
+};
+
+const normalizeBook = (book) => {
+  const coverImage = getFullUrl(book.cover_image || book.cover_image_url);
+  const pdfUrl = getFullUrl(book.pdf || book.pdf_url || book.pdf_file);
+  const audioUrl = getFullUrl(book.audio || book.audio_url || book.audio_file);
+
+  return {
+    id: book.id,
+    title: book.title,
+    author: book.author,
+    category: book.category ? book.category.name : 'Others',
+    description: book.description,
+    coverImage,
+    cover_image: coverImage,
+    cover_image_url: coverImage,
+    pdfUrl,
+    pdf: pdfUrl,
+    pdf_url: pdfUrl,
+    pdf_file: pdfUrl,
+    audioFile: audioUrl,
+    audioUrl,
+    audio: audioUrl,
+    audio_url: audioUrl,
+    audio_file: audioUrl,
+    rating: book.average_rating || 0,
+    commentCount: book.comment_count || 0,
+    publishedDate: book.published_date || null,
+    createdAt: book.created_at || null,
+  };
 };
 
 // Mock data to enable frontend build before backend is ready
@@ -58,57 +93,19 @@ export const apiService = {
     const response = await api.get('/books/');
     const data = response.data.results || response.data || [];
     
-    return data.map((book) => ({
-      id: book.id,
-      title: book.title,
-      author: book.author,
-      category: book.category ? book.category.name : 'Others',
-      description: book.description,
-      coverImage: getFullUrl(book.cover_image) || getFullUrl(book.cover_image_url) || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
-      pdfUrl: book.pdf || book.pdf_url || getFullUrl(book.pdf_file),
-      audioFile: getFullUrl(book.audio_file),
-      audioUrl: book.audio_url,
-      rating: book.average_rating || 0,
-      commentCount: book.comment_count || 0,
-      cover_image: book.cover_image,
-      cover_image_url: book.cover_image_url
-    }));
+    return data.map(normalizeBook);
   },
   getBook: async (id) => {
     const response = await api.get(`/books/${id}/`);
     const book = response.data;
-    return {
-      id: book.id,
-      title: book.title,
-      author: book.author,
-      category: book.category ? book.category.name : 'Others',
-      description: book.description,
-      coverImage: getFullUrl(book.cover_image) || getFullUrl(book.cover_image_url) || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
-      pdfUrl: book.pdf || book.pdf_url || getFullUrl(book.pdf_file),
-      audioFile: getFullUrl(book.audio_file),
-      audioUrl: book.audio_url,
-      rating: book.average_rating || 0,
-      commentCount: book.comment_count || 0,
-    };
+    return normalizeBook(book);
   },
   searchBooks: async (query) => {
     try {
       const response = await api.get(`/search/?q=${encodeURIComponent(query)}`);
       const data = response.data.results || response.data || [];
       
-      const formattedBooks = data.map((book) => ({
-        id: book.id,
-        title: book.title,
-        author: book.author,
-        category: book.category ? book.category.name : 'Others',
-        description: book.description,
-        coverImage: getFullUrl(book.cover_image) || getFullUrl(book.cover_image_url) || 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=600&auto=format&fit=crop', 
-        pdfUrl: book.pdf || book.pdf_url || getFullUrl(book.pdf_file),
-        audioFile: getFullUrl(book.audio_file),
-        audioUrl: book.audio_url,
-        rating: book.average_rating || 0,
-        commentCount: book.comment_count || 0,
-      }));
+      const formattedBooks = data.map(normalizeBook);
       return formattedBooks;
     } catch (err) {
       console.warn("Search error, falling back locally:", err);

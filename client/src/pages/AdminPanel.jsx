@@ -19,8 +19,8 @@ export default function AdminPanel() {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const res = await apiService.getBooks();
-        setBooks(res.data);
+        const books = await apiService.getBooks();
+        setBooks(books);
       } catch (err) {
         toast.error('Failed to load books');
       } finally {

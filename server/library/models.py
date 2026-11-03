@@ -36,10 +36,13 @@ class Book(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def get_pdf(self):
+        try:
+            if self.pdf_file:
+                return self.pdf_file.url
+        except Exception:
+            pass
         if self.pdf_url:
             return self.pdf_url
-        if self.pdf_file:
-            return self.pdf_file.url
         return None
 
     def __str__(self):

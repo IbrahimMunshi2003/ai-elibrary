@@ -27,23 +27,70 @@ class BookSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     average_rating = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
-    audio_file = serializers.FileField(required=False)
+
+    cover_image = serializers.SerializerMethodField()
+    cover_image_url = serializers.SerializerMethodField()
     pdf = serializers.SerializerMethodField()
+    pdf_url = serializers.SerializerMethodField()
+    pdf_file = serializers.SerializerMethodField()
+    audio = serializers.SerializerMethodField()
+    audio_url = serializers.SerializerMethodField()
+    audio_file = serializers.SerializerMethodField()
 
     class Meta:
         model = Book
         fields = [
             'id', 'title', 'author', 'category', 'description', 
-            'pdf', 'pdf_url', 'pdf_file', 'cover_image', 'cover_image_url', 'audio_file', 'audio_url', 'published_date', 'created_at',
+            'cover_image', 'cover_image_url', 'pdf', 'pdf_url', 'pdf_file',
+            'audio', 'audio_url', 'audio_file', 'published_date',
+            'created_at',
             'average_rating', 'comment_count'
         ]
 
+    @staticmethod
+    def _safe_file_url(file_field):
+        try:
+            if not file_field:
+                return None
+            url = str(file_field.url or '').strip()
+        except Exception:
+            return None
+        return url or None
+
+    @staticmethod
+    def _safe_external_url(value):
+        if value is None:
+            return None
+        value = str(value).strip()
+        return value or None
+
+    def get_cover_image(self, obj):
+        return self.get_cover_image_url(obj)
+
+    def get_cover_image_url(self, obj):
+        return self._safe_file_url(obj.cover_image) or self._safe_external_url(obj.cover_image_url)
+
     def get_pdf(self, obj):
-        return obj.get_pdf()
-        
+        return self.get_pdf_url(obj)
+
+    def get_pdf_url(self, obj):
+        # Prefer an uploaded file, but fall back to the explicit external URL
+        # when storage is unavailable or the uploaded object is missing.
+        return self._safe_file_url(obj.pdf_file) or self._safe_external_url(obj.pdf_url)
+
+    def get_pdf_file(self, obj):
+        return self.get_pdf_url(obj)
+
+    def get_audio(self, obj):
+        return self.get_audio_url(obj)
+
+    def get_audio_url(self, obj):
+        return self._safe_file_url(obj.audio_file) or self._safe_external_url(obj.audio_url)
+
+    def get_audio_file(self, obj):
+        return self.get_audio_url(obj)
+
     def get_average_rating(self, obj):
-        # Calculate dynamic average
-        # Default to 0.0 if no comments
         result = obj.comments.aggregate(Avg('rating'))['rating__avg']
         return round(result, 1) if result is not None else 0.0
 

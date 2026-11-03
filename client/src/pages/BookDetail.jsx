@@ -101,7 +101,13 @@ export default function BookDetail() {
             animate={{ y: 0, opacity: 1 }}
             className="aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl relative"
           >
-            <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover" />
+            {book.coverImage ? (
+              <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
+                Cover unavailable
+              </div>
+            )}
             <button
               onClick={handleBookmark}
               className="absolute top-4 right-4 p-3 rounded-full bg-background/90 backdrop-blur-sm text-foreground shadow-lg hover:text-primary-600 transition-colors z-10"

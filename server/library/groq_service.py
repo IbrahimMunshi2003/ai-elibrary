@@ -166,14 +166,25 @@ def ask_groq(question, books=None):
 
     try:
         all_books = Book.objects.all()
+        query_lower = question.lower()
+        scored_books = []
+        for book in all_books:
+            score = 0
+            if query_lower in book.title.lower(): score += 10
+            if query_lower in book.author.lower(): score += 5
+            if book.category and query_lower in book.category.name.lower(): score += 3
+            if query_lower in book.description.lower(): score += 1
+            scored_books.append((score, book))
+        
+        scored_books.sort(key=lambda x: x[0], reverse=True)
+        top_books = [b[1] for b in scored_books[:5]]
     except Exception as e:
         logger.warning(f"[Groq AI] Could not fetch books context: {e}")
-        all_books = []
+        top_books = []
 
     context = ""
-    if all_books:
-        for book in all_books:
-            # Determine PDF URL (prioritize pdf_file's Cloudinary URL, then external pdf_url)
+    if top_books:
+        for book in top_books:
             try:
                 if book.pdf_file:
                     pdf_url = book.pdf_file.url
@@ -184,15 +195,22 @@ def ask_groq(question, books=None):
             except Exception:
                 pdf_url = book.pdf_url if book.pdf_url else "PDF Not Available"
 
-            audio_url = book.audio_url if book.audio_url else "Audio Not Available"
+            try:
+                if book.audio_file:
+                    audio_url = book.audio_file.url
+                elif book.audio_url:
+                    audio_url = book.audio_url
+                else:
+                    audio_url = "Not Available"
+            except Exception:
+                audio_url = book.audio_url if book.audio_url else "Not Available"
+
             category_name = book.category.name if book.category else "Others"
 
             context += (
-                f"ID: {book.id}\n"
                 f"Title: {book.title}\n"
                 f"Author: {book.author}\n"
                 f"Category: {category_name}\n"
-                f"Description: {book.description}\n"
                 f"PDF URL: {pdf_url}\n"
                 f"Audio URL: {audio_url}\n"
                 f"-------------------\n"
@@ -229,22 +247,20 @@ CRITICAL RULES:
 7. You must respond in the exact following format for each book (do not add extra markdown links if the URL is provided on its own line):
 
 ## <Book Title>
+
 Author: <Book Author>
 
-Description:
-<Book Description>
-
-📖 Read Book
+📖 Read
 <Actual Cloudinary PDF URL or "PDF Not Available">
 
-🎧 Audio
+🎧 Listen
 <Actual Audio URL or "Audio Not Available">
 
 If multiple books match the user's query, list ALL matching books with their actual PDF URLs, each formatted in the structure above.
 """
 
     payload = {
-        "model": "llama-3.1-8b-instant",
+        "model": "openai/gpt-oss-20b",
         "messages": [
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": prompt}

@@ -322,6 +322,8 @@ import os
 from dotenv import load_dotenv
 import dj_database_url
 import sys
+from django.core.exceptions import ImproperlyConfigured
+from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -332,7 +334,32 @@ load_dotenv()
 # SECURITY
 # ================================
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-dev-key")
+configured_secret_key = os.getenv("DJANGO_SECRET_KEY")
+debug_requested = os.getenv("DEBUG", "False") == "True"
+test_or_dev_command = any(command in sys.argv for command in ("runserver", "test"))
+known_insecure_secret_keys = {
+    "django-insecure-dev-key",
+    "some_random_secret_key",
+}
+
+if not configured_secret_key:
+    if debug_requested and test_or_dev_command:
+        configured_secret_key = get_random_secret_key()
+    else:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY must be configured outside an explicit local development or test command."
+        )
+
+if (
+    configured_secret_key in known_insecure_secret_keys
+    or configured_secret_key.startswith("django-insecure-")
+    or len(configured_secret_key) < 32
+):
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY must be a strong, deployment-provided secret."
+    )
+
+SECRET_KEY = configured_secret_key
 
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
@@ -469,11 +496,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # DATABASE
 # ================================
 
+database_url = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+
 DATABASES = {
     "default": dj_database_url.config(
-        default=os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+        default=database_url,
         conn_max_age=600,
-        ssl_require=False,
+        ssl_require=database_url.startswith(("postgres://", "postgresql://")),
     )
 }
 

@@ -9,7 +9,7 @@ export default function BookCard({ book }) {
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarkStore();
   const bookmarked = isBookmarked(book.id);
 
-  const cover = getFullUrl(book.cover_image || book.cover_image_url);
+  const cover = book.coverImage || getFullUrl(book.cover_image || book.cover_image_url);
 
   const handleBookmark = async (e) => {
     e.preventDefault(); // Prevent navigating to detail page

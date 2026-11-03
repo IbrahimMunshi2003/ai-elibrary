@@ -156,40 +156,6 @@ class DashboardAPIView(APIView):
             'saved_books': BookSerializer([b.book for b in Bookmark.objects.filter(user=user)[:5]], many=True).data,
         }, status=status.HTTP_200_OK)
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def track_activity(request):
-    """
-    Tracks user interaction events.
-    Increments UserActivity counters and creates an ActivityLog entry.
-    """
-    event_type = request.data.get('event_type')
-    username = request.user.username
-    
-    if event_type not in ['pdf_open', 'ai_query', 'bookmark', 'comment']:
-        return Response({"error": "Invalid event type"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    # 1. Update/Create Counter
-    activity, _ = UserActivity.objects.get_or_create(user_identifier=username)
-    if event_type == 'pdf_open':
-        activity.pdf_opened += 1
-    elif event_type == 'ai_query':
-        activity.ai_queries += 1
-    elif event_type == 'bookmark':
-        activity.bookmarks += 1
-    # Note: 'comment' is tracked but usually we might just count the models.
-    # However, for consistency with UserActivity fields, we keep it simple.
-    activity.save()
-    
-    # 2. Create Log Entry
-    ActivityLog.objects.create(
-        event_type=event_type,
-        user_identifier=username
-    )
-    
-    return Response({"success": True}, status=status.HTTP_201_CREATED)
-
-
 # ==========================================
 # PUBLIC & PROTECTED API
 # ==========================================
@@ -321,18 +287,24 @@ def get_and_create_comments(request, id):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
-@permission_classes([AllowAny]) # As per prompt: "allow open delete for now"
+@permission_classes([IsAuthenticated])
 def delete_comment(request, id):
     """
-    Delete a specific comment.
-    In production, this should be Restricted to Admin or the Comment Owner.
+    Delete a comment owned by the authenticated user or an administrator.
     """
     try:
         comment = Comment.objects.get(id=id)
-        comment.delete()
-        return Response({"message": "Comment deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
     except Comment.DoesNotExist:
         return Response({"error": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if not request.user.is_staff and comment.user_name != request.user.username:
+        return Response(
+            {"error": "You do not have permission to delete this comment."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    comment.delete()
+    return Response({"message": "Comment deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 # ==========================================
 # DASHBOARD & ANALYTICS API
@@ -344,16 +316,20 @@ from django.utils import timezone
 from .models import UserActivity, ActivityLog, Category
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def track_activity(request):
-    event_type = request.data.get('event')
-    user_identifier = request.data.get('user', 'demo_user')
+    """
+    Track an interaction for the authenticated user.
 
-    if not event_type:
-        return JsonResponse({"error": "Event type required"}, status=400)
+    ``event`` remains accepted for compatibility with the current frontend;
+    identity is always derived from the validated JWT.
+    """
+    event_type = request.data.get('event_type') or request.data.get('event')
+    if event_type not in dict(ActivityLog.EVENT_CHOICES):
+        return Response({"error": "Invalid event type"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Increment counter
-    activity, created = UserActivity.objects.get_or_create(user_identifier=user_identifier)
+    username = request.user.get_username()
+    activity, _ = UserActivity.objects.get_or_create(user_identifier=username)
     if event_type == 'pdf_open':
         activity.pdf_opened += 1
     elif event_type == 'ai_query':
@@ -362,10 +338,8 @@ def track_activity(request):
         activity.bookmarks += 1
     activity.save()
 
-    # Log stream
-    ActivityLog.objects.create(event_type=event_type, user_identifier=user_identifier)
-
-    return JsonResponse({"status": "success", "event": event_type})
+    ActivityLog.objects.create(event_type=event_type, user_identifier=username)
+    return Response({"success": True, "event": event_type}, status=status.HTTP_201_CREATED)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
